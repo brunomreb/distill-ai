@@ -45,12 +45,33 @@ describe('ExtractRequestToolFactory (DEMO_MODE fixture fallback)', () => {
     expect(JSON.stringify(result)).not.toMatch(/price|discount|margin/i);
   });
 
+  it('replays the caixilharia fixture without calculating area or price', async () => {
+    const { contract, llm } = makeTool();
+    const result = await contract.execute({
+      text: 'Quero 2 janelas de 1200 x 1400 mm e uma porta-janela em alumínio RPT.',
+      priorFailure: null,
+    });
+
+    expect(llm.invoke).not.toHaveBeenCalled();
+    if (!('caixilharia' in result)) throw new Error('Expected caixilharia extraction');
+    expect(result.vertical).toBe('caixilharia');
+    expect(result.caixilharia.openings[0]).toMatchObject({
+      width_mm: 1200,
+      height_mm: 1400,
+      quantity: 2,
+    });
+    expect(result.customer.email).toBeNull();
+    expect(result.customer.address).toBeNull();
+    expect(JSON.stringify(result)).not.toMatch(/price|discount|margin|area_m2/i);
+  });
+
   it('extracts from the seed fixture without calling the LLM', async () => {
     const { contract, llm } = makeTool();
 
     const result = await contract.execute({ text: CLEAN_RFQ_BODY, priorFailure: null });
 
     expect(llm.invoke).not.toHaveBeenCalled();
+    if (!('line_items' in result)) throw new Error('Expected legacy catalog extraction');
     expect(result.company).toBe('Delta Ridge Manufacturing');
     expect(result.line_items.length).toBeGreaterThan(0);
     expect(result.line_items[0].raw_text).toContain('M8 Hex Bolt');
@@ -78,6 +99,7 @@ describe('ExtractRequestToolFactory (DEMO_MODE fixture fallback)', () => {
     });
 
     expect(llm.invoke).not.toHaveBeenCalled();
+    if (!('line_items' in result)) throw new Error('Expected legacy catalog extraction');
     expect(result.company).toBeNull();
     expect(result.contact).toBeNull();
     expect(result.sender_email).toBeNull();
@@ -94,6 +116,7 @@ describe('ExtractRequestToolFactory (DEMO_MODE fixture fallback)', () => {
     });
 
     expect(llm.invoke).not.toHaveBeenCalled();
+    if (!('line_items' in result)) throw new Error('Expected legacy catalog extraction');
     expect(result.line_items.length).toBeGreaterThan(0);
   });
 });

@@ -3,6 +3,7 @@ import type { QuoteStatus } from '../enums/quote-status.enum';
 /** Compact organization-scoped read model for the quote register. */
 export interface QuoteSummary {
   id: string;
+  vertical: 'avac' | 'caixilharia' | null;
   request_id: string;
   quote_number: string;
   status: QuoteStatus;

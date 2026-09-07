@@ -4,11 +4,14 @@ import { AuthService } from '../services/auth.service';
 import { authConfig } from '@config/auth.config';
 import type { Response } from 'express';
 import type { AfterCommitTask, WithAfterCommit } from '@common/http/after-commit';
+import type { AuthUser } from '../interfaces/auth-user.interface';
+import { demoAuthUser, resolveDemoOrgId } from '../demo-org';
 
 interface RlsRequest extends WithAfterCommit {
   headers?: Record<string, string | string[] | undefined>;
   queryRunner?: QueryRunner;
   entityManager?: EntityManager;
+  user?: AuthUser;
 }
 
 @Injectable()
@@ -36,13 +39,16 @@ export class RlsContextMiddleware implements NestMiddleware {
     };
 
     try {
-      let orgId = '00000000-0000-0000-0000-000000000000';
+      let orgId = resolveDemoOrgId(request.headers);
       if (authConfig.enabled) {
         const token = this.authService.extractToken(request);
         if (token) {
           const decoded = this.authService.validateToken(token);
           orgId = decoded.orgId;
+          request.user = this.authService.buildAuthUser(decoded);
         }
+      } else {
+        request.user = demoAuthUser(orgId);
       }
 
       await queryRunner.query('SELECT set_config($1, $2, true)', ['app.org_id', orgId]);

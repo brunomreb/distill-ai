@@ -1,4 +1,8 @@
-import { isAvacExtraction, type ExtractionV1 } from './schemas/extraction-v1.schema';
+import {
+  isAvacExtraction,
+  isCaixilhariaExtraction,
+  type ExtractionV1,
+} from './schemas/extraction-v1.schema';
 
 const QUANTITY_TOLERANCE = 0.01;
 
@@ -11,6 +15,9 @@ export type ReconcileResult = { ok: true } | { ok: false; reason: string };
 export function reconcile(data: ExtractionV1, sourceText: string): ReconcileResult {
   if (isAvacExtraction(data)) {
     return reconcileAvac(data, sourceText);
+  }
+  if (isCaixilhariaExtraction(data)) {
+    return reconcileCaixilharia(data, sourceText);
   }
   for (const item of data.line_items) {
     if (!item.unit.trim()) {
@@ -43,6 +50,35 @@ export function reconcile(data: ExtractionV1, sourceText: string): ReconcileResu
     }
   }
 
+  return { ok: true };
+}
+
+function reconcileCaixilharia(
+  data: Extract<ExtractionV1, { vertical: 'caixilharia' }>,
+  sourceText: string,
+): ReconcileResult {
+  const normalized = sourceText.toLocaleLowerCase('pt-PT');
+  for (const opening of data.caixilharia.openings) {
+    const numericFacts: Array<[string, number | null]> = [
+      [`${opening.ref}.width_mm`, opening.width_mm],
+      [`${opening.ref}.height_mm`, opening.height_mm],
+      [`${opening.ref}.quantity`, opening.quantity],
+    ];
+    for (const [field, value] of numericFacts) {
+      if (value !== null && !sourceContainsNumber(normalized, value)) {
+        return { ok: false, reason: `Valor extraído sem suporte no pedido: ${field}=${value}` };
+      }
+    }
+  }
+  const generalFacts: Array<[string, number | null]> = [
+    ['floor', data.caixilharia.floor],
+    ['distance_km', data.caixilharia.distance_km],
+  ];
+  for (const [field, value] of generalFacts) {
+    if (value !== null && !sourceContainsNumber(normalized, value)) {
+      return { ok: false, reason: `Valor extraído sem suporte no pedido: ${field}=${value}` };
+    }
+  }
   return { ok: true };
 }
 

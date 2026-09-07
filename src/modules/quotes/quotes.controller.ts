@@ -55,7 +55,7 @@ export class QuotesController {
     const data = await this.approvalActions.approveAndGenerate(
       request,
       req.user?.orgId,
-      req.user?.userId,
+      authConfig.enabled ? req.user?.userId : undefined,
     );
 
     return { statusCode: HttpStatus.OK, message: SYS_MSG.QUOTE_APPROVED_SUCCESS, data };
@@ -108,10 +108,8 @@ export class QuotesController {
     if (!request) {
       throw new NotFoundException(SYS_MSG.REQUEST_NOT_FOUND(requestId));
     }
-    if (authConfig.enabled) {
-      if (!user || request.org_id !== user.orgId) {
-        throw new NotFoundException(SYS_MSG.REQUEST_NOT_FOUND(requestId));
-      }
+    if ((authConfig.enabled && !user) || (user && request.org_id !== user.orgId)) {
+      throw new NotFoundException(SYS_MSG.REQUEST_NOT_FOUND(requestId));
     }
     return request;
   }

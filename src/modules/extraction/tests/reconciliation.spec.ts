@@ -73,6 +73,7 @@ describe('reconcile', () => {
       company: 'UNKNOWN',
       contact: 'UNKNOWN',
     });
+    if (!('line_items' in parsed)) throw new Error('Expected legacy extraction');
     expect(parsed.company).toBeNull();
     expect(parsed.contact).toBeNull();
   });
@@ -82,6 +83,7 @@ describe('reconcile', () => {
       ...validExtraction,
       sender_address: '123 Main St, Springfield, IL 62701',
     });
+    if (!('line_items' in parsed)) throw new Error('Expected legacy extraction');
     expect(parsed.sender_address).toBe('123 Main St, Springfield, IL 62701');
   });
 
@@ -90,11 +92,13 @@ describe('reconcile', () => {
       ...validExtraction,
       sender_address: 'UNKNOWN',
     });
+    if (!('line_items' in parsed)) throw new Error('Expected legacy extraction');
     expect(parsed.sender_address).toBeNull();
   });
 
   it('parses a fixture that omits sender_address as null, unchanged from before the field existed', () => {
     const parsed = ExtractionV1Schema.parse(validExtraction);
+    if (!('line_items' in parsed)) throw new Error('Expected legacy extraction');
     expect(parsed.sender_address).toBeNull();
   });
 
@@ -123,6 +127,42 @@ describe('reconcile', () => {
     expect(reconcile(parsed, 'Preciso de climatizar a sala.')).toEqual({
       ok: false,
       reason: 'Área extraída sem suporte no pedido: 35 m²',
+    });
+  });
+
+  it('rejects a caixilharia dimension that does not occur in the source text', () => {
+    const parsed = ExtractionV1Schema.parse({
+      vertical: 'caixilharia',
+      customer: { name: null, email: null, phone: null, address: null },
+      caixilharia: {
+        openings: [
+          {
+            ref: 'J1',
+            location: 'sala',
+            width_mm: 1200,
+            height_mm: 1400,
+            opening_type: 'fixo',
+            profile_preference: null,
+            glass_preference: null,
+            finish: null,
+            hardware: null,
+            blind: null,
+            insect_screen: null,
+            quantity: 1,
+          },
+        ],
+        remove_existing: null,
+        floor: null,
+        distance_km: null,
+        notes: '',
+      },
+      missing_info: [],
+      confidence: 'low',
+    });
+
+    expect(reconcile(parsed, 'Uma janela com 1200 x 1300 mm.')).toEqual({
+      ok: false,
+      reason: 'Valor extraído sem suporte no pedido: J1.height_mm=1400',
     });
   });
 });

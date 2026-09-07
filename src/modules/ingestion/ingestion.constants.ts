@@ -1,7 +1,8 @@
 /** Upload constraints and the multipart file shape for the ingestion endpoint. */
+import { DEFAULT_DEMO_ORG_ID } from '@modules/auth/demo-org';
 
 /** Org used when auth is disabled; mirrors the nil UUID set by the RLS middleware in demo mode. */
-export const DEMO_ORG_ID = '00000000-0000-0000-0000-000000000000';
+export const DEMO_ORG_ID = DEFAULT_DEMO_ORG_ID;
 
 /** Max attachment size. TRD §6 caps uploads at 10 MB. */
 export const MAX_UPLOAD_MB = 10;

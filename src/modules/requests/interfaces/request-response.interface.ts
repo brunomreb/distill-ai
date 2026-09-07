@@ -10,6 +10,7 @@ import type { QuoteDetail } from '@modules/quotes/interfaces/quote-detail.interf
 /** A request as it appears in the Inbox list. Read model for `GET /requests`. */
 export interface RequestSummary {
   id: string;
+  vertical: 'avac' | 'caixilharia' | null;
   sender_company: string | null;
   sender_contact: string | null;
   source_subject: string | null;

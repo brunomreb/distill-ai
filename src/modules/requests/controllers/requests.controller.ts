@@ -48,6 +48,7 @@ import type { AuthUser } from '../../auth/interfaces/auth-user.interface';
 import type { ResumeResponsePayload } from '../interfaces/resume.interface';
 import type { DeclineResponsePayload } from '../interfaces/decline.interface';
 import type { RemapResponsePayload } from '../interfaces/remap.interface';
+import { resolveDemoOrgCandidate } from '@modules/auth/demo-org';
 
 @Controller('requests')
 export class RequestsController {
@@ -74,17 +75,14 @@ export class RequestsController {
     const { page, limit } = parsePagination(rawPage, rawLimit);
 
     // Fail closed: when auth is on, a caller with no org gets an empty list, never an unscoped one.
-    let orgId: string | undefined;
-    if (authConfig.enabled) {
-      if (!req.user?.orgId) {
-        return {
-          statusCode: HttpStatus.OK,
-          message: SYS_MSG.REQUESTS_RETRIEVED,
-          data: [],
-          total: 0,
-        };
-      }
-      orgId = req.user.orgId;
+    const orgId = authConfig.enabled ? req.user?.orgId : resolveDemoOrgCandidate(req.user?.orgId);
+    if (!orgId && authConfig.enabled) {
+      return {
+        statusCode: HttpStatus.OK,
+        message: SYS_MSG.REQUESTS_RETRIEVED,
+        data: [],
+        total: 0,
+      };
     }
 
     const result = await this.requestsService.listForOrg({ orgId, page, limit });
@@ -104,11 +102,8 @@ export class RequestsController {
   async getOne(@Param('id') requestId: string, @Req() req: { user?: AuthUser }) {
     const request = await this.requestsService.findByIdOrFail(requestId);
 
-    if (authConfig.enabled) {
-      const user = req.user;
-      if (!user || request.org_id !== user.orgId) {
-        throw new NotFoundException(SYS_MSG.REQUEST_NOT_FOUND(requestId));
-      }
+    if ((authConfig.enabled && !req.user) || (req.user && request.org_id !== req.user.orgId)) {
+      throw new NotFoundException(SYS_MSG.REQUEST_NOT_FOUND(requestId));
     }
 
     const data = await this.requestsService.getDetail(request);
@@ -136,11 +131,8 @@ export class RequestsController {
   ) {
     const request = await this.requestsService.findByIdOrFail(requestId);
 
-    if (authConfig.enabled) {
-      const user = req.user;
-      if (!user || request.org_id !== user.orgId) {
-        throw new NotFoundException(SYS_MSG.REQUEST_NOT_FOUND(requestId));
-      }
+    if ((authConfig.enabled && !req.user) || (req.user && request.org_id !== req.user.orgId)) {
+      throw new NotFoundException(SYS_MSG.REQUEST_NOT_FOUND(requestId));
     }
 
     const { page, limit } = parsePagination(rawPage, rawLimit);
@@ -175,11 +167,8 @@ export class RequestsController {
   ): Promise<void> {
     const request = await this.requestsService.findByIdOrFail(requestId);
 
-    if (authConfig.enabled) {
-      const user = req.user;
-      if (!user || request.org_id !== user.orgId) {
-        throw new CustomHttpException(SYS_MSG.REQUEST_NOT_FOUND(requestId), HttpStatus.NOT_FOUND);
-      }
+    if ((authConfig.enabled && !req.user) || (req.user && request.org_id !== req.user.orgId)) {
+      throw new CustomHttpException(SYS_MSG.REQUEST_NOT_FOUND(requestId), HttpStatus.NOT_FOUND);
     }
 
     const { attachment, bytes } = await this.attachmentsService.getForDownload(
@@ -206,12 +195,11 @@ export class RequestsController {
   ): Promise<Observable<MessageEvent>> {
     const request = await this.requestsService.findByIdOrFail(requestId);
 
-    if (authConfig.enabled) {
-      const user = req.user;
-      if (!user || request.org_id !== user.orgId) {
-        throw new NotFoundException(SYS_MSG.REQUEST_NOT_FOUND(requestId));
-      }
-      this.logger.log({ event: SYS_MSG.STREAM_SUBSCRIBED, requestId, orgId: user.orgId });
+    if ((authConfig.enabled && !req.user) || (req.user && request.org_id !== req.user.orgId)) {
+      throw new NotFoundException(SYS_MSG.REQUEST_NOT_FOUND(requestId));
+    }
+    if (req.user) {
+      this.logger.log({ event: SYS_MSG.STREAM_SUBSCRIBED, requestId, orgId: req.user.orgId });
     }
 
     return this.streamService.subscribe(requestId);
@@ -231,11 +219,8 @@ export class RequestsController {
   }> {
     const request = await this.requestsService.findByIdOrFail(requestId);
 
-    if (authConfig.enabled) {
-      const user = req.user;
-      if (!user || request.org_id !== user.orgId) {
-        throw new NotFoundException(SYS_MSG.REQUEST_NOT_FOUND(requestId));
-      }
+    if ((authConfig.enabled && !req.user) || (req.user && request.org_id !== req.user.orgId)) {
+      throw new NotFoundException(SYS_MSG.REQUEST_NOT_FOUND(requestId));
     }
 
     const result = await this.requestActions.resumeRequest(request, ResumeReason.MANUAL);
@@ -276,11 +261,8 @@ export class RequestsController {
   }> {
     const request = await this.requestsService.findByIdOrFail(requestId);
 
-    if (authConfig.enabled) {
-      const user = req.user;
-      if (!user || request.org_id !== user.orgId) {
-        throw new NotFoundException(SYS_MSG.REQUEST_NOT_FOUND(requestId));
-      }
+    if ((authConfig.enabled && !req.user) || (req.user && request.org_id !== req.user.orgId)) {
+      throw new NotFoundException(SYS_MSG.REQUEST_NOT_FOUND(requestId));
     }
 
     const result = await this.requestActions.declineRequest(request, dto.reason, req.user?.userId);
@@ -304,11 +286,8 @@ export class RequestsController {
   ): Promise<{ statusCode: number; message: string; data: RemapResponsePayload }> {
     const request = await this.requestsService.findByIdOrFail(requestId);
 
-    if (authConfig.enabled) {
-      const user = req.user;
-      if (!user || request.org_id !== user.orgId) {
-        throw new NotFoundException(SYS_MSG.REQUEST_NOT_FOUND(requestId));
-      }
+    if ((authConfig.enabled && !req.user) || (req.user && request.org_id !== req.user.orgId)) {
+      throw new NotFoundException(SYS_MSG.REQUEST_NOT_FOUND(requestId));
     }
 
     const data = await this.lineItemRemapActions.remap(request, lineId, dto);

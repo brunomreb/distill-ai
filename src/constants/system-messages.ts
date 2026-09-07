@@ -243,6 +243,7 @@ export const CLARIFICATION_DRAFT_EMPTY = 'Cannot send a clarification with empty
 
 // Catalog search (manual re-map fallback)
 export const SKUS_RETRIEVED = 'SKUs retrieved successfully';
+export const ORGANIZATIONS_RETRIEVED = 'Organizations retrieved successfully';
 
 // Decline
 export const REQUEST_DECLINED = 'Request declined successfully';

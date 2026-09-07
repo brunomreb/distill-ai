@@ -5,7 +5,7 @@ import { CustomHttpException } from '@common/exceptions/custom-http.exception';
 import { Roles } from '@modules/auth/decorators/roles.decorator';
 import { Role } from '@modules/auth/enums/role.enum';
 import type { AuthUser } from '@modules/auth/interfaces/auth-user.interface';
-import { DEMO_ORG_ID } from '@modules/ingestion/ingestion.constants';
+import { resolveDemoOrgCandidate } from '@modules/auth/demo-org';
 import * as SYS_MSG from '@constants/system-messages';
 import { AnalyticsService } from './analytics.service';
 import { AnalyticsQueryDto } from './dto/analytics-query.dto';
@@ -31,7 +31,7 @@ export class AnalyticsController {
     // Org comes from the authenticated caller, never the request body (SEC-01). Branch explicitly on
     // auth like the other read endpoints (line-items, clarification): when auth is on, fail closed if
     // the caller has no org rather than silently falling back to the demo org; when off, use the demo org.
-    let orgId = DEMO_ORG_ID;
+    let orgId = resolveDemoOrgCandidate(req.user?.orgId);
     if (authConfig.enabled) {
       const user = req.user;
       if (!user) {

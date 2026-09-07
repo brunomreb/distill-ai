@@ -60,6 +60,21 @@ describe('RlsContextMiddleware', () => {
     expect(next).toHaveBeenCalledTimes(1);
   });
 
+  it('selects only an allowlisted demo tenant from the header', async () => {
+    const { middleware, qr } = build();
+    const req: Record<string, unknown> = {
+      headers: { 'x-demo-org-id': '00000000-0000-0000-0000-000000000002' },
+    };
+
+    await middleware.use(req, makeResponse() as unknown as Response, vi.fn());
+
+    expect(qr.query).toHaveBeenCalledWith('SELECT set_config($1, $2, true)', [
+      'app.org_id',
+      '00000000-0000-0000-0000-000000000002',
+    ]);
+    expect(req.user).toMatchObject({ orgId: '00000000-0000-0000-0000-000000000002' });
+  });
+
   it('commits and runs after-commit tasks on a 2xx response', async () => {
     const { middleware, qr } = build();
     const req: Record<string, unknown> = {};

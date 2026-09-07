@@ -37,6 +37,7 @@ import { AnalyticsModule } from '@modules/analytics/analytics.module';
 import { ScoringModule } from '@modules/scoring/scoring.module';
 // ── Copilot ──────────────────────────────────────────────────────
 import { CopilotModule } from '@modules/copilot/copilot.module';
+import { OrganizationsModule } from '@modules/organizations/organizations.module';
 
 // ── Auth ───────────────────────────────────────────────────────
 import { AuthModule } from '@modules/auth';
@@ -89,6 +90,7 @@ import { RlsContextMiddleware } from '@modules/auth/middleware/rls-context.middl
     LineItemsModule,
     ClarificationModule,
     CopilotModule,
+    OrganizationsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: HttpExceptionFilter },

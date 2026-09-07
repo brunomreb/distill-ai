@@ -11,6 +11,9 @@ export class RequestSummaryResponseDto {
   @ApiProperty({ format: 'uuid' })
   id: string;
 
+  @ApiProperty({ enum: ['avac', 'caixilharia'], nullable: true, example: 'avac' })
+  vertical: 'avac' | 'caixilharia' | null;
+
   @ApiProperty({ nullable: true, example: 'Apex Fabrication' })
   sender_company: string | null;
 

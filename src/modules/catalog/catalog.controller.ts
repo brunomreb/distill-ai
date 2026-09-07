@@ -8,6 +8,7 @@ import type { AuthUser } from '../auth/interfaces/auth-user.interface';
 import { CatalogService } from './catalog.service';
 import { SearchSkusDocs } from './docs/catalog-swagger.doc';
 import * as SYS_MSG from '@constants/system-messages';
+import { resolveDemoOrgCandidate } from '@modules/auth/demo-org';
 
 @ApiTags('Catalog')
 @Controller('catalog')
@@ -23,7 +24,9 @@ export class CatalogController {
     @Query('limit') rawLimit: string | undefined,
     @Req() req: { user?: AuthUser },
   ) {
-    let orgId: string | undefined;
+    let orgId: string | undefined = authConfig.enabled
+      ? req.user?.orgId
+      : resolveDemoOrgCandidate(req.user?.orgId);
     if (authConfig.enabled) {
       const user = req.user;
       if (!user) {

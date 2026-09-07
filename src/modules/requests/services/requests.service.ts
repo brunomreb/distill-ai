@@ -106,6 +106,7 @@ function toLineItemDetail(line: LineItem): LineItemDetail {
 function toRequestSummary(request: Request): RequestSummary {
   return {
     id: request.id,
+    vertical: request.vertical,
     sender_company: request.sender_company,
     sender_contact: request.sender_contact,
     source_subject: request.source_subject,

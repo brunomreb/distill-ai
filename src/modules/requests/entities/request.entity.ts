@@ -19,6 +19,9 @@ export class Request extends BaseEntity {
   @JoinColumn({ name: 'org_id' })
   organization: Organization;
 
+  @Column({ type: 'text', nullable: true })
+  vertical: 'avac' | 'caixilharia' | null;
+
   @Column({ type: 'enum', enum: RequestChannel, enumName: 'request_channel' })
   channel: RequestChannel;
 

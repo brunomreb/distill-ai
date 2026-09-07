@@ -23,6 +23,7 @@ import {
   ExtractionV1Schema,
   formatSchemaError,
   isAvacExtraction,
+  isCaixilhariaExtraction,
 } from './schemas/extraction-v1.schema';
 
 @Injectable()
@@ -188,7 +189,7 @@ export class ExtractNode implements PipelineNode {
 
       await this.lineItems.replaceForRequest(
         requestId,
-        isAvacExtraction(extracted)
+        isAvacExtraction(extracted) || isCaixilhariaExtraction(extracted)
           ? []
           : extracted.line_items.map((item) => ({
               position: item.position,
@@ -202,15 +203,30 @@ export class ExtractNode implements PipelineNode {
       const result = await this.requests.update({
         identifierOptions: { id: requestId, org_id: orgId },
         updatePayload: {
-          sender_company: isAvacExtraction(extracted) ? null : extracted.company,
-          sender_contact: isAvacExtraction(extracted) ? extracted.customer.name : extracted.contact,
-          sender_email: isAvacExtraction(extracted)
-            ? extracted.customer.email
-            : extracted.sender_email,
-          sender_address: isAvacExtraction(extracted)
-            ? extracted.customer.address
-            : extracted.sender_address,
-          delivery_date: isAvacExtraction(extracted) ? null : extracted.delivery_date,
+          sender_company:
+            isAvacExtraction(extracted) || isCaixilhariaExtraction(extracted)
+              ? null
+              : extracted.company,
+          sender_contact:
+            isAvacExtraction(extracted) || isCaixilhariaExtraction(extracted)
+              ? extracted.customer.name
+              : extracted.contact,
+          sender_email:
+            isAvacExtraction(extracted) || isCaixilhariaExtraction(extracted)
+              ? extracted.customer.email
+              : extracted.sender_email,
+          sender_address:
+            isAvacExtraction(extracted) || isCaixilhariaExtraction(extracted)
+              ? extracted.customer.address
+              : extracted.sender_address,
+          delivery_date:
+            isAvacExtraction(extracted) || isCaixilhariaExtraction(extracted)
+              ? null
+              : extracted.delivery_date,
+          vertical:
+            isAvacExtraction(extracted) || isCaixilhariaExtraction(extracted)
+              ? extracted.vertical
+              : null,
         },
         transactionOptions: { useTransaction: true, transaction },
       });

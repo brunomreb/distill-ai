@@ -9,7 +9,10 @@ import { LineItem } from '@modules/catalog/entities/line-item.entity';
 import { LineItemModelAction } from '@modules/catalog/line-item.model-action';
 import { Sku } from '@modules/catalog/entities/sku.entity';
 import { ExtractionModelAction } from '@modules/extraction/extraction.model-action';
-import { AvacExtractionV1Schema } from '@modules/extraction/schemas/extraction-v1.schema';
+import {
+  AvacExtractionV1Schema,
+  CaixilhariaExtractionV1Schema,
+} from '@modules/extraction/schemas/extraction-v1.schema';
 import { QuoteModelAction, type QuoteLineInput } from '@modules/quotes/quote.model-action';
 import { StageErrorReason } from '@constants/events.constants';
 import * as SYS_MSG from '@constants/system-messages';
@@ -18,6 +21,7 @@ import { QuotePricingService } from './quote-pricing.service';
 import { PRICING_BLOCKED_FLAG } from './pricing.constants';
 import type { PricedQuote, PricingLineInput } from './interfaces/pricing.interfaces';
 import { priceAvacQuote, type AvacPricedQuote } from './avac-pricing.engine';
+import { priceCaixilhariaQuote, type CaixilhariaPricedQuote } from './caixilharia-pricing.engine';
 import { OrgBranding } from '@modules/organizations/entities/org-branding.entity';
 
 /**
@@ -53,6 +57,10 @@ export class PriceNode implements PipelineNode {
     const avacExtraction = AvacExtractionV1Schema.safeParse(extraction?.raw_json);
     if (avacExtraction.success) {
       return this.priceAvac(requestId, orgId, avacExtraction.data);
+    }
+    const caixilhariaExtraction = CaixilhariaExtractionV1Schema.safeParse(extraction?.raw_json);
+    if (caixilhariaExtraction.success) {
+      return this.priceCaixilharia(requestId, orgId, caixilhariaExtraction.data);
     }
 
     const { payload: lines } = await this.lineItems.list({
@@ -152,6 +160,47 @@ export class PriceNode implements PipelineNode {
     return { kind: 'advance', next: this.nextNode };
   }
 
+  private async priceCaixilharia(
+    requestId: string,
+    orgId: string,
+    extraction: Parameters<typeof priceCaixilhariaQuote>[0],
+  ): Promise<NodeResult> {
+    const [rules, catalog, branding] = await Promise.all([
+      this.pricingRules.getActiveForOrg(orgId, 'caixilharia'),
+      this.dataSource.manager.find(Sku, { where: { org_id: orgId } }),
+      this.dataSource.manager.findOne(OrgBranding, { where: { org_id: orgId } }),
+    ]);
+    const priced = priceCaixilhariaQuote(extraction, rules, catalog, {
+      taxRate: branding?.iva_rate,
+    });
+
+    if (priced.blocked) {
+      await this.quotes.deleteForRequest(requestId);
+      await this.emitPricingRuleMissing(orgId, requestId);
+      await this.emitCompleted(orgId, requestId, null, 0, true);
+      this.logger.warn({
+        event: 'caixilharia_pricing_blocked',
+        requestId,
+        missing: priced.missingRules,
+      });
+      return { kind: 'advance', next: this.nextNode };
+    }
+
+    const quote = await this.quotes.replaceForRequest({
+      requestId,
+      orgId,
+      quoteNumber: `Q-${requestId}`,
+      subtotalMinor: priced.subtotalMinor,
+      discountMinor: priced.discountMinor,
+      totalMinor: priced.totalMinor,
+      leadTimeDays: priced.leadTimeDays,
+      currency: priced.currency,
+      lines: this.toCaixilhariaQuoteLines(priced),
+    });
+    await this.emitCompleted(orgId, requestId, quote.id, priced.totalMinor, false);
+    return { kind: 'advance', next: this.nextNode };
+  }
+
   /** Writes the priced unit price + lead time onto each line, tagging blocked lines for review (EC-02). */
   private async persistLinePrices(
     em: EntityManager,
@@ -191,6 +240,10 @@ export class PriceNode implements PipelineNode {
   }
 
   private toAvacQuoteLines(priced: AvacPricedQuote): QuoteLineInput[] {
+    return priced.lines.map((line) => ({ ...line }));
+  }
+
+  private toCaixilhariaQuoteLines(priced: CaixilhariaPricedQuote): QuoteLineInput[] {
     return priced.lines.map((line) => ({ ...line }));
   }
 

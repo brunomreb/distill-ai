@@ -91,3 +91,34 @@ Não foram feitas alterações de produto nessa fase.
 - Divergência: endpoint `GET /quotes` estritamente filtrado por organização e página PT-PT com pesquisa, métricas, cliente, valor, estado e link para revisão/PDF. O endpoint não expõe o caminho interno do object store e os totais agregados são separados por moeda.
 - Impacto no merge: baixo; endpoint e read model são aditivos e substituem apenas o componente placeholder.
 - Testes: isolamento/fail-closed do controller, query org-scoped, API client, estados/listagem e proibição de somar moedas distintas. Totais agregados: API 78 ficheiros/701 testes + 1 `todo`; client 44/378.
+
+## 2026-09-07 — Fase 2: vertical caixilharia
+
+### Extração estruturada e reconciliação
+
+- Motivo: interpretar pedidos de janelas/portas sem permitir ao LLM calcular áreas, materiais, preços ou descontos.
+- Ficheiros principais: `src/modules/extraction/schemas/extraction-v1.schema.ts`, `src/modules/extraction/tools/extract-request.tool.ts`, `src/modules/extraction/reconcile.ts`, `src/database/seed/caixilharia_01_demo.json`.
+- Divergência: ramo `caixilharia` adicionado ao `ExtractionV1`, com `openings[]`, dimensões, abertura, perfil, vidro e opções; o structured output aceita AVAC ou caixilharia e os factos numéricos são reconciliados com o texto de origem.
+- Segurança: fixtures verticais só reutilizam dados de cliente corroborados literalmente pelo pedido; a demo não pode carimbar uma identidade pré-gravada num pedido semelhante.
+- Impacto no merge: moderado e concentrado no schema/prompt. O ramo AVAC e o formato legacy foram preservados.
+- Testes: replay sem provider, ausência de campos de preço/área calculada, reconciliação de dimensões e rejeição de factos não suportados.
+
+### Motor determinístico de caixilharia
+
+- Motivo: calcular cada vão a partir de catálogo e regras editáveis por organização.
+- Ficheiros principais: `src/modules/pricing/caixilharia-pricing.engine.ts`, `src/modules/pricing/price.node.ts`, `src/modules/pricing/tests/caixilharia-pricing.engine.spec.ts`.
+- Divergência: função pura por vão para área real/faturável, perfil × tipo de abertura, vidro, ferragens, persiana, mosquiteiro, montagem, remoção, transporte, tiers de desconto, markup e IVA.
+- Fonte de verdade: todos os preços vêm de `skus`; mínimos, multiplicadores, seletores, descontos, markup e imposto vêm de `pricing_rules`/`org_branding`. Não existe acesso a LLM/tools no motor.
+- Fail-closed: dimensões/tipo críticos, regras obrigatórias, SKUs ausentes e moedas misturadas bloqueiam a criação do draft.
+- Impacto no merge: baixo; motor novo e dispatch adicional no `PriceNode`, mantendo o algoritmo upstream e AVAC.
+- Testes: golden CAIX-01 exato, área mínima 0,5 m²/vão, tiers >15/>30 m², IVA por organização e input crítico em falta.
+
+### Segunda organização e seletor demo multi-tenant
+
+- Motivo: demonstrar os dois verticais isolados desde o primeiro dia, sem ligar autenticação real a dados fictícios.
+- Ficheiros principais: migrations `1782590000000-SeedCaixilhariaDemo.ts` e `1782600000000-AddVerticalToOrganizationsAndRequests.ts`, `src/modules/auth/demo-org.ts`, middleware RLS, `src/modules/organizations/**` e read models de pedidos/orçamentos.
+- Divergência: organização fictícia `Janelas Madeira Demo`, 10 SKUs, 12 regras e branding próprio; colunas `vertical` em organizações/pedidos; `GET /organizations`; header local `X-Demo-Org-Id` limitado às duas orgs seed quando `AUTH_ENABLED=false`.
+- Compatibilidade/rollback: as colunas são aditivas, o pedido aceita `vertical=null` durante ingestão/legacy, e ambas as migrations têm `down`; sem header mantém-se a org AVAC histórica.
+- Segurança: o header não aceita UUIDs arbitrários, não é usado quando auth está ativa e os endpoints de pedido/PDF devolvem 404 em acesso cruzado.
+- Impacto no merge: moderado no middleware/controllers, aditivo em entidades/API.
+- Testes: seleção allowlisted, fallback, listagem de organizações, produção limitada à org autenticada e prova E2E de 404 cross-tenant.

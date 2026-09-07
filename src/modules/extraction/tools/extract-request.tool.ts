@@ -5,9 +5,9 @@ import { matchDemoFixture } from '@common/demo/demo-fixtures';
 import { LLMProvider } from '@modules/llm/llm.provider';
 import { ToolContract } from '@modules/tools/interfaces/tool-contract.interface';
 import {
-  AVAC_EXTRACTION_JSON_SCHEMA,
   ExtractRequestInputSchema,
   ExtractionV1Schema,
+  STRATOS_EXTRACTION_JSON_SCHEMA,
   UNKNOWN_FIELD,
   type ExtractRequestInput,
   type ExtractionV1,
@@ -41,7 +41,7 @@ export class ExtractRequestToolFactory {
       prompt,
       temperature: 0.2,
       maxTokens: 1500,
-      jsonSchema: AVAC_EXTRACTION_JSON_SCHEMA,
+      jsonSchema: STRATOS_EXTRACTION_JSON_SCHEMA,
     });
 
     const wrapped = response.text.match(/^\s*```(?:json)?\s*([\s\S]*)\s*```\s*$/i);
@@ -71,8 +71,21 @@ export class ExtractRequestToolFactory {
     if (!fixture) throw new Error(SYS_MSG.EXTRACTION_DEMO_FIXTURE_UNAVAILABLE);
 
     const fields = fixture.extractedFields;
-    if (fields.vertical === 'avac') {
-      return ExtractionV1Schema.parse(fields);
+    if (fields.vertical === 'avac' || fields.vertical === 'caixilharia') {
+      const customer = (fields.customer ?? {}) as Record<string, unknown>;
+      const normalizedSource = text.toLocaleLowerCase('pt-PT');
+      return ExtractionV1Schema.parse({
+        ...fields,
+        customer: Object.fromEntries(
+          ['name', 'email', 'phone', 'address'].map((key) => {
+            const value = customer[key];
+            const supported =
+              typeof value === 'string' &&
+              normalizedSource.includes(value.toLocaleLowerCase('pt-PT'));
+            return [key, supported ? value : null];
+          }),
+        ),
+      });
     }
     const rawItems = Array.isArray(fields.line_items) ? fields.line_items : [];
     const senderMatches = this.fixtureSenderMatchesText(fields, text);
@@ -113,14 +126,18 @@ export class ExtractRequestToolFactory {
         ? `\nPrevious attempt failed validation: ${input.priorFailure}\nCorrect the issues and return valid JSON only.\n`
         : '';
 
-    return `${failureBlock}Interpreta este pedido de orçamento AVAC em português de Portugal.
+    return `${failureBlock}Interpreta este pedido de orçamento AVAC ou caixilharia em português de Portugal.
 Transcreve apenas factos presentes no texto. Usa null quando a informação não existe e inclui
 os campos em falta em missing_info. Nunca inventes dados.
 
-Regra inviolável: não calcules preços, descontos, impostos, margens, áreas, quantidades de
-equipamento, horas ou materiais. indoor_units_requested só pode conter um número explicitamente
-pedido pelo cliente; caso contrário usa null. Cada área deve corresponder a uma divisão e medida
-explicitamente mencionadas. O motor determinístico fará todos os cálculos depois desta etapa.
+Escolhe vertical="avac" para climatização/ar condicionado e vertical="caixilharia" para janelas,
+portas, vãos, perfis ou vidros. Devolve apenas o objeto do vertical escolhido.
+
+Regra inviolável: não calcules preços, descontos, impostos, margens, áreas em m², quantidades de
+equipamento, horas ou materiais. Em AVAC, indoor_units_requested só pode conter um número
+explicitamente pedido; cada área deve corresponder a uma divisão e medida expressas. Em caixilharia,
+width_mm, height_mm e quantity têm de ser medidas/contagens explicitamente indicadas no pedido.
+O motor determinístico fará todos os cálculos depois desta etapa.
 
 Devolve apenas o objeto JSON exigido pelo schema, sem markdown ou prosa.
 

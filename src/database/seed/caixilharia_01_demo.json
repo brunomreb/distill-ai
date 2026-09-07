@@ -1,0 +1,55 @@
+{
+  "_meta": {
+    "sample_id": "caixilharia-01-demo",
+    "request_type": "service_quote",
+    "match_terms": ["2 janelas", "1200 x 1400 mm", "porta-janela", "alumínio RPT"]
+  },
+  "source_text": "Bom dia, preciso de substituir 2 janelas da sala, cada uma com 1200 x 1400 mm, oscilo-batentes em PVC 70 mm branco, vidro duplo low-e, com persiana e mosquiteiro. Preciso ainda de 1 porta-janela do terraço com 1800 x 2100 mm, de correr em alumínio RPT antracite, vidro duplo low-e, sem persiana nem mosquiteiro. É para remover as existentes, num 2.º andar, a 18 km da vossa loja. Ana Sousa, ana.sousa@example.pt, 913 456 789, Rua do Sol 8, Funchal.",
+  "extracted_fields": {
+    "vertical": "caixilharia",
+    "customer": {
+      "name": "Ana Sousa",
+      "email": "ana.sousa@example.pt",
+      "phone": "913 456 789",
+      "address": "Rua do Sol 8, Funchal"
+    },
+    "caixilharia": {
+      "openings": [
+        {
+          "ref": "J1",
+          "location": "sala",
+          "width_mm": 1200,
+          "height_mm": 1400,
+          "opening_type": "oscilo-batente",
+          "profile_preference": "PVC 70 mm",
+          "glass_preference": "vidro duplo low-e",
+          "finish": "branco",
+          "hardware": "oscilo-batente",
+          "blind": true,
+          "insect_screen": true,
+          "quantity": 2
+        },
+        {
+          "ref": "P1",
+          "location": "terraço",
+          "width_mm": 1800,
+          "height_mm": 2100,
+          "opening_type": "correr",
+          "profile_preference": "alumínio RPT",
+          "glass_preference": "vidro duplo low-e",
+          "finish": "antracite",
+          "hardware": "correr",
+          "blind": false,
+          "insect_screen": false,
+          "quantity": 1
+        }
+      ],
+      "remove_existing": true,
+      "floor": 2,
+      "distance_km": 18,
+      "notes": "Substituição de caixilharia existente."
+    },
+    "missing_info": [],
+    "confidence": "high"
+  }
+}

@@ -19,6 +19,7 @@ const quote = {
   pdf_storage_url: 'quotes/org-1/quote-1.pdf',
   created_at: new Date('2026-09-07T12:00:00.000Z'),
   request: {
+    vertical: 'avac',
     sender_company: null,
     sender_contact: 'João Martins',
     sender_email: 'joao@example.pt',
@@ -45,6 +46,7 @@ describe('QuoteListController.list', () => {
     expect(result.data).toEqual([
       {
         id: 'quote-1',
+        vertical: 'avac',
         request_id: 'request-1',
         quote_number: 'Q-001',
         status: 'ready',

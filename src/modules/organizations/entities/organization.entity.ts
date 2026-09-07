@@ -5,4 +5,7 @@ import { BaseEntity } from '@common/entities/base.entity';
 export class Organization extends BaseEntity {
   @Column({ type: 'text' })
   name: string;
+
+  @Column({ type: 'text', default: 'avac' })
+  vertical: 'avac' | 'caixilharia';
 }
