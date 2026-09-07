@@ -8,26 +8,27 @@ const ROLES: { value: Role; label: string; description: string }[] = [
   {
     value: 'RevOps',
     label: 'RevOps',
-    description: 'Full access: inbox, quotes, catalog, analytics. Demo persona: Avery Reed.',
+    description:
+      'Acesso total: pedidos, orçamentos, catálogo e análise. Persona de demonstração: Avery Reed.',
   },
   {
     value: 'Sales',
-    label: 'Sales',
-    description: 'Inbox and quotes only, no catalog access or analytics.',
+    label: 'Vendas',
+    description: 'Apenas pedidos e orçamentos, sem acesso ao catálogo nem à análise.',
   },
   {
     value: 'Admin',
     label: 'Admin',
-    description: 'Full access + future admin controls. Same as RevOps in V1.',
+    description: 'Acesso total + controlos de administração futuros. Igual a RevOps nesta versão.',
   },
 ];
 
 const SALES_RESTRICTED = ['/catalog', '/analytics'];
 
 const THRESHOLDS = [
-  { label: 'Auto-approve threshold', value: '≥ 95%', env: 'AUTO_THRESHOLD' },
-  { label: 'Review threshold', value: '≥ 70%', env: 'MATCH_THRESHOLD' },
-  { label: 'Auto-send cap', value: '£3,000', env: 'AUTO_SEND_CAP' },
+  { label: 'Limiar de aprovação automática', value: '≥ 95%', env: 'AUTO_THRESHOLD' },
+  { label: 'Limiar de revisão', value: '≥ 70%', env: 'MATCH_THRESHOLD' },
+  { label: 'Limite de envio automático', value: '£3,000', env: 'AUTO_SEND_CAP' },
 ];
 
 export function Settings() {
@@ -49,7 +50,7 @@ export function Settings() {
 
   return (
     <div className="px-6 py-6 max-w-2xl">
-      <h1 className="text-xl font-semibold text-slate-900 mb-6">Settings</h1>
+      <h1 className="text-xl font-semibold text-slate-900 mb-6">Definições</h1>
 
       {/* Demo org switcher */}
       <section className="bg-surface border border-border rounded-card p-5 mb-4">
@@ -84,9 +85,9 @@ export function Settings() {
 
       {/* Role switcher */}
       <section className="bg-surface border border-border rounded-card p-5 mb-4">
-        <h2 className="text-sm font-semibold text-slate-900 mb-1">Demo role</h2>
+        <h2 className="text-sm font-semibold text-slate-900 mb-1">Papel de demonstração</h2>
         <p className="text-sm text-body-text mb-4">
-          Switch persona to see which nav items and views are available to each role.
+          Muda de persona para ver que itens de navegação e ecrãs cada papel tem disponíveis.
         </p>
         <div className="flex gap-3 mb-4">
           {ROLES.map(({ value, label }) => (
@@ -115,9 +116,10 @@ export function Settings() {
 
       {/* Confidence thresholds (read-only in V1) */}
       <section className="bg-surface border border-border rounded-card p-5">
-        <h2 className="text-sm font-semibold text-slate-900 mb-1">Confidence thresholds</h2>
+        <h2 className="text-sm font-semibold text-slate-900 mb-1">Limiares de confiança</h2>
         <p className="text-sm text-body-text mb-4">
-          These control auto-approval and review routing. Configured via environment variables.
+          Controlam a aprovação automática e o encaminhamento para revisão. Configurados por
+          variável de ambiente.
         </p>
         <ul className="space-y-3">
           {THRESHOLDS.map(({ label, value, env }) => (

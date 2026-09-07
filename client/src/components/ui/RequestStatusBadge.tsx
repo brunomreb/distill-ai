@@ -8,7 +8,7 @@ const colours: Record<RequestStatus, string> = {
   received: 'bg-sent-bg text-sent-tx',
   parsing: 'bg-parse-bg text-parse-tx',
   needs_review: 'bg-amber-100 text-amber-800',
-  priced: 'bg-violet-100 text-violet-700',
+  priced: 'bg-blue-100 text-blue-700',
   ready: 'bg-green-100 text-green-700',
   sent: 'bg-sent-bg text-sent-tx',
   declined: 'bg-rose-100 text-rose-700',

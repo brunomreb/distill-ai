@@ -25,14 +25,34 @@ function readStoredOrgId(): string | null {
   }
 }
 
+function writeStoredOrgId(id: string | null): void {
+  try {
+    if (id) {
+      localStorage.setItem(STORAGE_KEY, id);
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  } catch {
+    // swallow: in-memory state still updates
+  }
+}
+
+// Runs once, synchronously, the instant this module is evaluated — before <OrgProvider> itself
+// mounts, let alone its children. A hard reload with a persisted org must not let the first
+// requests fire headerless while waiting for a post-mount effect to catch up.
+setDemoOrgId(readStoredOrgId());
+
 export function OrgProvider({ children }: { children: ReactNode }) {
   const { data: organizations, isLoading } = useOrganizations();
   const queryClient = useQueryClient();
   const [selectedOrgId, setSelectedOrgIdState] = useState<string | null>(readStoredOrgId);
 
-  // A stored id can outlive the org it named (seed reset, demo data wiped). Adjust state during
-  // render (not an effect) the first time the real list arrives and no longer contains it, so the
-  // app falls back to the server default without an extra render pass.
+  // A stored id can outlive the org it named (seed reset, demo data wiped). Resetting the React
+  // state itself happens during render (React's sanctioned pattern for deriving state from a prop
+  // change, see "Storing information from previous renders") rather than in an effect, so it never
+  // costs an extra commit. The side effects that follow from a real selection change — the axios
+  // header, localStorage, and query invalidation — are handled uniformly below, keyed off
+  // selectedOrgId, so they fire whether the change came from the user or from this reset.
   const [checkedOrgs, setCheckedOrgs] = useState<Organization[] | undefined>(undefined);
   if (organizations && organizations !== checkedOrgs) {
     setCheckedOrgs(organizations);
@@ -42,17 +62,17 @@ export function OrgProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
+    // Order matters: the header must land before any query this invalidation wakes up refetches.
+    // Runs on every selectedOrgId change, mount included — a stale-id reset can follow an
+    // org list that only arrived after children already fetched under the wrong header, so
+    // there's no "first run is always safe to skip" case to special-case here.
     setDemoOrgId(selectedOrgId);
-  }, [selectedOrgId]);
+    writeStoredOrgId(selectedOrgId);
+    void queryClient.invalidateQueries();
+  }, [selectedOrgId, queryClient]);
 
   function setSelectedOrgId(id: string) {
-    try {
-      localStorage.setItem(STORAGE_KEY, id);
-    } catch {
-      // swallow: selection still updates in memory
-    }
     setSelectedOrgIdState(id);
-    void queryClient.invalidateQueries();
   }
 
   return (

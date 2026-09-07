@@ -62,13 +62,17 @@ describe('OrgProvider', () => {
     expect(getDemoOrgId()).toBe('org-caixilharia');
   });
 
-  it('drops a stored org id that no longer matches a known org', () => {
+  it('drops a stored org id that no longer matches a known org, clearing storage and the header', () => {
+    const queryClient = new QueryClient();
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
     localStorage.setItem(STORAGE_KEY, 'org-deleted');
 
-    renderConsumer();
+    renderConsumer(queryClient);
 
     expect(screen.getByTestId('selected')).toHaveTextContent('none');
     expect(getDemoOrgId()).toBeNull();
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+    expect(invalidateSpy).toHaveBeenCalled();
   });
 
   it('persists the selection, injects the header, and invalidates queries', async () => {
@@ -83,5 +87,45 @@ describe('OrgProvider', () => {
     expect(localStorage.getItem(STORAGE_KEY)).toBe('org-caixilharia');
     expect(getDemoOrgId()).toBe('org-caixilharia');
     expect(invalidateSpy).toHaveBeenCalled();
+  });
+
+  // Regression: the header used to be set from a useEffect while invalidateQueries fired
+  // synchronously from the click handler, so refetches could race ahead of the new header.
+  it('applies the demo org header before invalidating queries on selection change', async () => {
+    const queryClient = new QueryClient();
+    const orgIdSeenByInvalidate: Array<string | null> = [];
+    vi.spyOn(queryClient, 'invalidateQueries').mockImplementation(() => {
+      orgIdSeenByInvalidate.push(getDemoOrgId());
+      return Promise.resolve();
+    });
+    const user = userEvent.setup();
+    renderConsumer(queryClient);
+    orgIdSeenByInvalidate.length = 0; // mount invalidates too; isolate the click's own invalidation
+
+    await user.click(screen.getByRole('button', { name: 'Vãos do Norte' }));
+
+    expect(orgIdSeenByInvalidate).toEqual(['org-caixilharia']);
+  });
+});
+
+describe('OrgProvider — module-load priming', () => {
+  afterEach(() => {
+    localStorage.clear();
+  });
+
+  // Regression: on a hard reload with a persisted org, children used to mount (and fire their
+  // first queries) before the provider's effect had applied the header. Priming happens as a
+  // module-level side effect, so it must already be in place the instant anything imports the
+  // module — well before <OrgProvider> itself, let alone its children, ever renders.
+  it('primes the demo org header from localStorage the moment the module loads, before any component mounts', async () => {
+    localStorage.setItem(STORAGE_KEY, 'org-caixilharia');
+    vi.resetModules();
+
+    const demoOrg = await import('../api/demoOrg');
+    expect(demoOrg.getDemoOrgId()).toBeNull();
+
+    await import('./OrgContext');
+
+    expect(demoOrg.getDemoOrgId()).toBe('org-caixilharia');
   });
 });

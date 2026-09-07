@@ -10,7 +10,7 @@ interface VerticalBadgeProps {
 export function VerticalBadge({ vertical }: VerticalBadgeProps) {
   if (!vertical) return null;
   return (
-    <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+    <span className="inline-flex items-center rounded bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
       {verticalLabels[vertical]}
     </span>
   );

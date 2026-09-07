@@ -63,3 +63,38 @@ describe('Settings — demo org switcher', () => {
     expect(screen.getByText(/a carregar organizações/i)).toBeInTheDocument();
   });
 });
+
+describe('Settings — PT-PT copy', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    mockUseOrganizations.mockReturnValue({ data: orgs, isLoading: false });
+  });
+
+  it('shows the page title and section headings in PT-PT', () => {
+    renderSettings();
+
+    expect(screen.getByRole('heading', { name: 'Definições' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Papel de demonstração' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Limiares de confiança' })).toBeInTheDocument();
+  });
+
+  it('shows the selected role description in PT-PT', () => {
+    renderSettings();
+
+    expect(screen.getByText(/persona de demonstração: avery reed/i)).toBeInTheDocument();
+  });
+
+  it('shows the threshold labels in PT-PT', () => {
+    renderSettings();
+
+    expect(screen.getByText('Limiar de aprovação automática')).toBeInTheDocument();
+    expect(screen.getByText('Limiar de revisão')).toBeInTheDocument();
+    expect(screen.getByText('Limite de envio automático')).toBeInTheDocument();
+  });
+
+  it('has no leftover English copy on the page', () => {
+    const { container } = renderSettings();
+
+    expect(container.textContent).not.toMatch(/Settings|Demo role|Switch persona|Confidence/i);
+  });
+});

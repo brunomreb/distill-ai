@@ -16,4 +16,11 @@ describe('VerticalBadge', () => {
     const { container } = render(<VerticalBadge vertical={null} />);
     expect(container).toBeEmptyDOMElement();
   });
+
+  // Brand rule: no SaaS pill shape — small approved radius only, never fully rounded.
+  it('never uses the pill (rounded-full) shape', () => {
+    render(<VerticalBadge vertical="avac" />);
+    const badge = screen.getByText('AVAC');
+    expect(badge.className).not.toMatch(/rounded-full/);
+  });
 });
