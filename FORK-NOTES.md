@@ -122,3 +122,21 @@ Não foram feitas alterações de produto nessa fase.
 - Segurança: o header não aceita UUIDs arbitrários, não é usado quando auth está ativa e os endpoints de pedido/PDF devolvem 404 em acesso cruzado.
 - Impacto no merge: moderado no middleware/controllers, aditivo em entidades/API.
 - Testes: seleção allowlisted, fallback, listagem de organizações, produção limitada à org autenticada e prova E2E de 404 cross-tenant.
+
+### Cliente multi-vertical — colaboração Codex/Claude Code
+
+- Responsabilidade: Codex implementou e validou o backend; Claude Code implementou o frontend na branch isolada `claude/frontend`; Codex reviu os contratos, integrou os commits e executou a validação final.
+- Motivo: permitir alternar entre as organizações demo e tornar inequívoco o vertical de cada pedido/orçamento, mantendo a UI perto dos contratos existentes.
+- Ficheiros principais: `client/src/api/organizations.ts`, `client/src/api/demoOrg.ts`, `client/src/context/OrgContext.tsx`, `client/src/components/OrgSelector.tsx`, `client/src/components/ui/VerticalBadge.tsx`, `client/src/pages/Settings.tsx` e read views de pedidos/orçamentos.
+- Divergência: header `X-Demo-Org-Id` aplicado pelo cliente apenas ao selecionar uma organização allowlisted; seleção persistida e validada antes de renderizar consumidores; queries invalidadas depois de atualizar o header; vertical visível no registo e no percurso de revisão.
+- Marca/localização: ecrã de definições em PT-PT; teal como primária; chips com raio pequeno; estados de erro usam o vermelho funcional Stratos `#c2645f`; removidos violet, purple, pink e rose do runtime.
+- Impacto no merge: moderado mas concentrado em contexto/API e componentes pequenos. Não houve mudança de router nem de state/query library.
+- Testes: 50 ficheiros e 414 testes client, incluindo reload/ordem do header, org persistida inválida, badges, localização e tokens; lint e build verdes.
+
+### Saúde dos serviços Docker
+
+- Motivo: o `HEALTHCHECK` do client resolvia `localhost` para IPv6, mas o nginx escuta em IPv4; o worker herdava ainda o probe HTTP da imagem API apesar de não servir HTTP.
+- Ficheiros: `Dockerfile.client`, `docker-compose.yml`.
+- Divergência: probe do client usa explicitamente `127.0.0.1`; o compose desativa o healthcheck HTTP apenas no serviço worker, cuja falha de processo continua coberta por `restart: unless-stopped`.
+- Impacto no merge: baixo e restrito a runtime local/deploy.
+- Teste: API, client, PostgreSQL e Redis reportam `healthy`; worker fica `running` sem um falso estado `unhealthy`.

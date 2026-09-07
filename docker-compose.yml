@@ -72,6 +72,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    # The worker uses the API image but does not expose an HTTP server, so the image-level
+    # HTTP healthcheck is not applicable. Process exit/restart is the worker liveness signal.
+    healthcheck:
+      disable: true
     restart: unless-stopped
 
   client:

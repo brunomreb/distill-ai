@@ -8,118 +8,133 @@ Base auditada: `2de95a9e1a47ad07d214c8adf0a624e6ed15b0af`
 
 Fork: `https://github.com/brunomreb/distill-ai`
 
-Fase atual concluída: **Fase 1 — AVAC demo-ready**
+Fase atual concluída: **Fase 2 — AVAC + caixilharia demo-ready**
 
-Próxima fase: **Fase 2 — não iniciada**
+Próxima fase: **Fase 3 — não iniciada**
 
 ## Estado executivo
 
-A Fase 1 está concluída localmente. É possível colar um pedido AVAC em texto livre na UI, processá-lo, rever os dados extraídos, gerar o orçamento por um motor determinístico, aprová-lo e descarregar um PDF A4 com branding e IVA da organização.
+Os dois verticais pedidos estão funcionais no mesmo fork. A organização demo selecionada determina o vertical, catálogo, regras, branding, IVA, pedidos e orçamentos. Em ambos os casos o percurso é texto livre → extração estruturada → cálculo determinístico → revisão humana → aprovação → PDF PT-PT.
 
-O cenário golden gera exatamente oito linhas e o total de **8 315,27 €**. O percurso real foi executado no browser contra a stack Docker, não apenas por testes unitários.
+O golden AVAC mantém o total exato de **8 315,27 €**. O novo golden de caixilharia gera 13 linhas e o total exato de **5 669,25 €**. O fluxo de caixilharia foi executado na stack Docker real, incluindo aprovação, PDF e prova de isolamento cross-tenant.
 
-Artefactos da demo:
+Artefactos e acesso:
 
-- UI final: [`docs/demo/phase-1-avac.png`](docs/demo/phase-1-avac.png)
-- Registo navegável: [`docs/demo/phase-1-quotes-register.png`](docs/demo/phase-1-quotes-register.png)
-- PDF efetivamente descarregado pela UI: [`docs/demo/phase-1-avac.pdf`](docs/demo/phase-1-avac.pdf)
 - Aplicação local, enquanto a stack estiver ativa: `http://localhost:8080`
-- Pedido de evidência: `c94598e2-9c2f-4b64-8e50-f8ae4e66e40e`
+- Registo de orçamentos: `http://localhost:8080/quotes`
+- Pedido caixilharia de evidência: `26127d9c-d077-4165-bc8e-bd5464456920`
+- Pedido AVAC de evidência: `c94598e2-9c2f-4b64-8e50-f8ae4e66e40e`
+- Registo visível: `docs/demo/phase-2-quotes-register.png`
+- Orçamento caixilharia: `docs/demo/phase-2-caixilharia.png`
+- PDF caixilharia: `docs/demo/phase-2-caixilharia.pdf`
 
-## Checklist da Fase 1
+## Checklist da Fase 2
 
-- [x] Provider LLM adaptado para Anthropic Messages API, modelo por defeito `claude-sonnet-5` e structured output JSON Schema.
-- [x] Embeddings desacoplados do provider de interpretação; OpenAI `text-embedding-3-small` por defeito.
-- [x] `ExtractionV1` AVAC implementado com os campos da secção 6 e validação Zod estrita.
-- [x] Prompt proíbe o LLM de calcular ou inventar preços, descontos, impostos, margens, áreas ou quantidades implícitas.
-- [x] Factos numéricos AVAC reconciliados com o texto de origem; ausência de dados críticos falha fechada.
-- [x] `pricing_rules` estendida com `vertical`, `rule_key`, `sort_order` e tipos de regra AVAC.
-- [x] `org_branding` criada com RLS por `org_id`, IVA, validade, cor, logo e dados fiscais/contactos.
-- [x] Motor AVAC puro carrega catálogo, regras e branding da BD da organização.
-- [x] Seed AVAC com três SKUs Daikin, onze regras e branding da org demo `Clima Atlântico`.
-- [x] Formulário manual existente adaptado/localizado para colar o pedido na UI.
-- [x] Revisão humana e ecrã de orçamento principal em PT-PT.
-- [x] Registo navegável de orçamentos com cliente, valor, estado e acesso ao PDF.
-- [x] PDF A4 PT-PT com branding por organização e IVA configurável.
-- [x] Golden test exato e testes fail-closed.
-- [x] Fixtures incluídas na imagem Docker, corrigindo o achado de packaging da Fase 0.
+- [x] `ExtractionV1` estendido com `openings[]`, dimensões, quantidade, tipo de abertura, perfil, vidro e opções.
+- [x] Prompt e schema impedem preços, áreas calculadas, descontos, margens e quantidades implícitas vindos do LLM.
+- [x] Dimensões, quantidade, piso e distância reconciliados com o texto original.
+- [x] Motor puro de caixilharia calcula cada vão a partir de catálogo e regras da BD.
+- [x] Área mínima faturável, perfil × abertura, vidro, ferragens, persiana, mosquiteiro, montagem, remoção, deslocação, desconto por área, margem e IVA suportados.
+- [x] Vãos fixos não recebem ferragens.
+- [x] Missing dimensions/rules/SKUs e moedas mistas falham fechado.
+- [x] Organização demo `Janelas Madeira Demo` com 10 SKUs, 12 regras, branding e IVA 23%.
+- [x] `vertical` persistido em organizações/pedidos e exposto nos read models.
+- [x] Seletor de organização demo e badges de vertical no client.
+- [x] Pedidos, catálogo, orçamentos e analytics continuam filtrados por organização.
+- [x] Header demo limitado às duas organizações seed e ignorado com autenticação ativa.
+- [x] Mesmo fluxo de revisão, aprovação, PDF e registo navegável usado por AVAC e caixilharia.
+- [x] Golden test CAIX-01 exato e teste E2E real.
 
-## Golden test AVAC-01
+## Golden test CAIX-01
 
-Entrada coberta por fixture/teste: casa em Câmara de Lobos, sala de 35 m², dois quartos de 14 m², preferência Daikin, 6 m de tubagem e condensadora a 6 m das unidades interiores.
+Entrada: duas janelas PVC oscilo-batentes de 1 200 × 1 400 mm com vidro duplo low-e, persiana e mosquiteiro; uma porta de correr em alumínio de 1 800 × 2 100 mm; remoção da caixilharia existente; montagem e 15 km de deslocação.
 
-| Linha | Tipo | Valor exato |
-|---|---|---:|
-| Daikin Perfera FTXM35 × 1 | equipment | 1 100,00 € |
-| Daikin Perfera FTXM25 × 2 | equipment | 1 800,00 € |
-| Daikin Multi+ exterior × 1 | equipment | 1 800,00 € |
-| Tubagem adicional: 3 m × 14,50 € | material | 43,50 € |
-| Distância adicional à condensadora: 1 m × 18,00 € | material | 18,00 € |
-| Instalação: 12 h × 30,00 € | labor | 360,00 € |
-| Margem comercial: 32% | margin | 1 638,88 € |
-| IVA: 23% | tax | 1 554,89 € |
-| **Subtotal sem IVA** |  | **6 760,38 €** |
-| **Total** |  | **8 315,27 €** |
+| Linha | Valor exato |
+|---|---:|
+| J1 — perfil PVC × abertura | 714,84 € |
+| J1 — vidro duplo low-e | 319,20 € |
+| J1 — ferragens oscilo-batentes | 170,00 € |
+| J1 — persiana | 369,60 € |
+| J1 — mosquiteiro | 150,00 € |
+| P1 — perfil alumínio × abertura | 1 081,08 € |
+| P1 — vidro duplo low-e | 359,10 € |
+| P1 — ferragens de correr | 120,00 € |
+| Montagem de 3 vãos | 270,00 € |
+| Remoção de 3 vãos | 120,00 € |
+| Deslocação de 15 km | 13,50 € |
+| Margem comercial | 921,83 € |
+| IVA 23% | 1 060,10 € |
+| **Subtotal sem IVA** | **4 609,15 €** |
+| **Total** | **5 669,25 €** |
 
-Também está provado que trocar apenas a regra de IVA da organização de 23% para 6%, sem alterar código, muda o total exato para **7 166,00 €**.
+O motor também cobre a área mínima de 0,5 m² por vão, descontos de 4% acima de 15 m² e 7% acima de 30 m², e override do IVA por organização.
 
 ## Restrições duras
 
 | Restrição | Estado e evidência |
 |---|---|
-| LLM interpreta; nunca calcula | Mantida. `price`, `policy` e `score` continuam isolados de tools/LLM; a suite do boundary confirma zero `tool.invoked`. O novo motor `priceAvacQuote` é uma função pura sem dependência de LLM ou registry. |
-| Preços/regras/branding sem redeploy | Catálogo, regras e branding são linhas da BD por org. Os valores do motor e PDF vêm dessas linhas. A UI CRUD pertence explicitamente à Fase 3. |
-| PT-PT e IVA configurável | Percurso principal e PDF localizados. IVA por defeito 23%, lido da organização e coberto por teste de override a 6%. |
-| Multi-tenant desde o início | Catálogo, regras, branding, pedido e orçamento são org-scoped. As novas tabelas têm RLS por `org_id`. |
-| Fork próximo do upstream | O pipeline existente foi estendido; o ramo legacy continua intacto para pedidos não AVAC. Todas as divergências estão em `FORK-NOTES.md`. |
-| Teste por lógica de pricing | Golden test de oito linhas, total exato, missing critical input e IVA por organização. |
+| LLM interpreta; nunca calcula | Mantida nos dois verticais. `price`, `policy` e `score` não invocam LLM/tools. `priceAvacQuote` e `priceCaixilhariaQuote` são funções puras; o CI testa o boundary. |
+| Preços/regras/branding sem redeploy | Catálogo, regras e branding são dados da BD por organização. Nenhum preço do vertical está no prompt ou no output do LLM. A UI CRUD é o objetivo da Fase 3. |
+| PT-PT e IVA configurável | Percursos principais e PDFs estão localizados. O IVA vem de `org_branding.iva_rate`, 23% nos seeds e coberto por override. |
+| Multi-tenant desde o início | Organização, vertical, SKUs, regras, branding, pedidos, quotes e PDFs são org-scoped. Acesso cross-org devolve 404. |
+| Fork próximo do upstream | Foram adicionados schemas, motores, migrations e read models isolados; o caminho legacy continua disponível. Divergências registadas em `FORK-NOTES.md`. |
+| Teste por lógica de pricing | Existem goldens exatos AVAC e caixilharia, testes de limites, IVA, dados críticos, moedas e ausência de LLM no pricing. |
 
-## Arquitetura implementada na Fase 1
+## Arquitetura implementada
 
 ```text
-Texto livre
-  -> Claude/fixture: interpretação estruturada ExtractionV1 AVAC
-  -> reconciliação dos factos com a origem
-  -> catálogo + pricing_rules + org_branding filtrados por org_id
-  -> priceAvacQuote (função pura e determinística)
+Organização selecionada (AVAC ou caixilharia)
+  -> texto livre
+  -> Claude/fixture: interpretação estruturada ExtractionV1
+  -> reconciliação de factos numéricos com a origem
+  -> catálogo + pricing_rules + org_branding por org_id
+  -> motor puro do vertical
   -> revisão humana
   -> aprovação
   -> PDF A4 PT-PT no object store
 ```
 
-O adapter Anthropic envia o JSON Schema no `output_config.format` da Messages API. Em `DEMO_MODE`, a extração usa uma fixture determinística; isto permite demonstrar o produto sem chaves e sem transformar o LLM num calculador.
+Em `DEMO_MODE`, fixtures determinísticas substituem apenas a chamada ao provider. O pricing usa exatamente o mesmo código e os mesmos dados de BD usados fora da demo.
 
 ## Evidência de validação
 
 | Verificação | Resultado |
 |---|---|
-| Testes API/worker | PASS — 78 ficheiros; 701 testes; 1 `todo` |
-| Testes client | PASS — 44 ficheiros; 378 testes |
-| Lint API | PASS |
-| Lint client | PASS |
-| Build API/worker | PASS |
-| Build client | PASS |
-| Docker build API/client | PASS |
-| Migrações numa BD vazia | PASS — 23 migrações aplicadas |
-| Health API, PostgreSQL e Redis | PASS |
+| Testes API/worker | PASS — 80 ficheiros; 712 testes; 1 `todo` |
+| Testes client | PASS — 50 ficheiros; 414 testes |
+| Lint API e build API/worker | PASS |
+| Lint e build client | PASS |
+| Migrações numa BD vazia | PASS — 25 migrações; rollback das 2 migrations da Fase 2 e reaplicação também PASS |
+| Seed caixilharia | PASS — 10 SKUs, 12 regras, branding e IVA 0,23 |
 | E2E API/worker em Docker | PASS — ingestão, extração, pricing, aprovação e PDF |
-| E2E no browser | PASS — colar pedido, processar, rever, gerar, aprovar e descarregar PDF |
-| PDF | PASS — A4, 1 página, 2 836 bytes, oito linhas e total golden |
+| Isolamento multi-tenant | PASS — pedido caixilharia consultado como AVAC devolve 404 |
+| E2E no browser | PASS — organização persistida, registo com 2 orçamentos, detalhe navegável e zero erros de consola |
+| PDF caixilharia | PASS — A4, 2 páginas, 3 893 bytes, branding `Janelas Madeira`, 13 linhas e total golden |
 
 ## Limites conscientes desta fase
 
-- O adapter Claude e o payload de structured output estão cobertos por testes de contrato com respostas simuladas; a demo E2E usa `DEMO_MODE` porque não foi fornecida uma chave Anthropic real.
-- O envio externo de email pertence à Fase 3 segundo o brief. Nesta fase existe o rascunho PT-PT e o PDF descarregável, mas não é efetuado envio real.
-- A edição por UI de catálogo, regras e branding pertence à Fase 3. Nesta fase os três já são editáveis diretamente em BD, sem alteração de código ou redeploy.
-- Auth real continua pendente do trabalho de produção. `DEMO_MODE` e auth desligada só são aceitáveis para dados de demonstração.
-- As áreas auxiliares herdadas do upstream ainda podem conter linguagem/conceitos do produto original; o percurso da demo AVAC foi convertido para Stratos/PT-PT.
+- A demo usa fixtures porque não foi fornecida uma chave Anthropic real; o adapter Claude e o structured output são cobertos por testes de contrato.
+- O seletor por header é exclusivamente local/demo e só funciona com autenticação desligada. Dados reais exigem `AUTH_ENABLED=true` e um identity provider.
+- CRUD de catálogo/regras/branding, importação CSV/Excel, onboarding e envio real por email pertencem à Fase 3.
+- O PDF de caixilharia ocupa duas páginas com o conjunto golden de 13 linhas; paginação e conteúdo estão corretos, mas a composição visual pode ser refinada com templates de branding na Fase 3.
+- Áreas auxiliares herdadas do upstream ainda serão progressivamente localizadas; o percurso comercial dos dois verticais está em PT-PT.
 
-## Decisão da Fase 0 — histórico
+## Histórico das fases
 
-**GO**, entregue no commit `6d2cabf`.
+### Fase 1 — AVAC
 
-O spike provou instalação, builds, 690 testes API, 371 testes client, Docker, pipeline completo em `DEMO_MODE` e PDF. Identificou quatro lacunas principais: fixtures ausentes da imagem, migração necessária antes do primeiro arranque, branding/IVA não modelados e UI/auth/envio incompletos. A Fase 1 corrigiu o packaging das fixtures e implementou o slice AVAC, regras em BD, branding e IVA; migração operacional, auth de produção, UI admin e entrega de email continuam nas fases previstas.
+Concluída no commit `b6c8c47`. O golden AVAC produz oito linhas, subtotal **6 760,38 €**, IVA **1 554,89 €** e total **8 315,27 €**. Alterar apenas o IVA da organização para 6% muda o total para **7 166,00 €**, sem código ou redeploy.
+
+Artefactos:
+
+- `docs/demo/phase-1-avac.png`
+- `docs/demo/phase-1-quotes-register.png`
+- `docs/demo/phase-1-avac.pdf`
+
+### Fase 0 — spike
+
+**GO**, entregue no commit `6d2cabf`. O spike provou instalação, builds, Docker, pipeline completo em `DEMO_MODE` e PDF; o fork foi considerado uma base viável.
 
 ## Gate seguinte
 
-**A Fase 2 (caixilharia) não foi iniciada.** Este ficheiro e o relatório de fim de Fase 1 são o ponto de controlo antes de qualquer novo vertical.
+**A Fase 3 não foi iniciada.** Este `STATE.md`, os artefactos visuais e o relatório de fim da Fase 2 formam o ponto de controlo antes da camada “editar sem código”.
