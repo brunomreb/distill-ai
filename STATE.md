@@ -21,6 +21,7 @@ O cenário golden gera exatamente oito linhas e o total de **8 315,27 €**. O p
 Artefactos da demo:
 
 - UI final: [`docs/demo/phase-1-avac.png`](docs/demo/phase-1-avac.png)
+- Registo navegável: [`docs/demo/phase-1-quotes-register.png`](docs/demo/phase-1-quotes-register.png)
 - PDF efetivamente descarregado pela UI: [`docs/demo/phase-1-avac.pdf`](docs/demo/phase-1-avac.pdf)
 - Aplicação local, enquanto a stack estiver ativa: `http://localhost:8080`
 - Pedido de evidência: `c94598e2-9c2f-4b64-8e50-f8ae4e66e40e`
@@ -38,6 +39,7 @@ Artefactos da demo:
 - [x] Seed AVAC com três SKUs Daikin, onze regras e branding da org demo `Clima Atlântico`.
 - [x] Formulário manual existente adaptado/localizado para colar o pedido na UI.
 - [x] Revisão humana e ecrã de orçamento principal em PT-PT.
+- [x] Registo navegável de orçamentos com cliente, valor, estado e acesso ao PDF.
 - [x] PDF A4 PT-PT com branding por organização e IVA configurável.
 - [x] Golden test exato e testes fail-closed.
 - [x] Fixtures incluídas na imagem Docker, corrigindo o achado de packaging da Fase 0.
@@ -91,8 +93,8 @@ O adapter Anthropic envia o JSON Schema no `output_config.format` da Messages AP
 
 | Verificação | Resultado |
 |---|---|
-| Testes API/worker | PASS — 77 ficheiros; 697 testes; 1 `todo` |
-| Testes client | PASS — 43 ficheiros; 373 testes |
+| Testes API/worker | PASS — 78 ficheiros; 701 testes; 1 `todo` |
+| Testes client | PASS — 44 ficheiros; 378 testes |
 | Lint API | PASS |
 | Lint client | PASS |
 | Build API/worker | PASS |

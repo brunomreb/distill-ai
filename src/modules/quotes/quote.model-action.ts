@@ -41,6 +41,15 @@ export class QuoteModelAction extends AbstractModelAction<Quote> {
     super(repository, Quote);
   }
 
+  /** Lists quotes newest-first with the owning request, explicitly scoped to one organization. */
+  async listForOrg(orgId: string): Promise<Quote[]> {
+    return this.repository.find({
+      where: { org_id: orgId },
+      relations: { request: true },
+      order: { created_at: 'DESC', id: 'DESC' },
+    });
+  }
+
   /**
    * Replaces the quote (and its line items) for a request in one unit of work, so re-running the
    * price node after a crash-resume recomputes the same quote without duplicating rows (EC-03).

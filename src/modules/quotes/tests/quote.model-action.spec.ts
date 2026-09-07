@@ -6,6 +6,7 @@ import { QuoteLineItem } from '../entities/quote-line-item.entity';
 function setup() {
   const repository = {
     update: vi.fn().mockResolvedValue({ affected: 1 }),
+    find: vi.fn().mockResolvedValue([]),
   };
   const manager = {
     findOne: vi.fn(),
@@ -25,6 +26,20 @@ function setup() {
   const action = new QuoteModelAction(repository as never, dataSource as never);
   return { action, repository, manager, dataSource };
 }
+
+describe('QuoteModelAction.listForOrg', () => {
+  it('loads only one organization and includes the request needed by the register', async () => {
+    const { action, repository } = setup();
+
+    await action.listForOrg('org-1');
+
+    expect(repository.find).toHaveBeenCalledWith({
+      where: { org_id: 'org-1' },
+      relations: { request: true },
+      order: { created_at: 'DESC', id: 'DESC' },
+    });
+  });
+});
 
 describe('QuoteModelAction.tryClaimForApproval', () => {
   it('claims a draft quote and returns true', async () => {

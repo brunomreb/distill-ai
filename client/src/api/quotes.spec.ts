@@ -6,6 +6,8 @@ import { act } from 'react';
 import {
   approveQuote,
   downloadQuotePdf,
+  fetchQuotes,
+  quoteKeys,
   resolveApproveQuoteError,
   useApproveQuote,
 } from './quotes';
@@ -79,6 +81,20 @@ describe('approveQuote', () => {
 
     expect(mockPost).toHaveBeenCalledWith('/requests/req-1/quote');
     expect(result).toEqual({ quote: quoteFixture });
+  });
+});
+
+describe('fetchQuotes', () => {
+  beforeEach(() => {
+    mockGet.mockReset();
+  });
+
+  it('loads the organization quote register', async () => {
+    const quotes = [{ id: 'quote-1', quote_number: 'Q-001' }];
+    mockGet.mockResolvedValue({ data: { data: quotes } });
+
+    await expect(fetchQuotes()).resolves.toEqual(quotes);
+    expect(mockGet).toHaveBeenCalledWith('/quotes');
   });
 });
 
@@ -168,6 +184,7 @@ describe('useApproveQuote', () => {
 
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: requestKeys.detail('req-1') });
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: requestKeys.lists() });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: quoteKeys.list() });
   });
 
   it('succeeds on an idempotent re-call against an already-READY quote', async () => {

@@ -83,3 +83,11 @@ Não foram feitas alterações de produto nessa fase.
 - A Fase 2 (caixilharia) não foi iniciada.
 - UI CRUD de catálogo/regras/branding, entrega real por email e onboarding de organizações continuam reservados para a Fase 3.
 - Auth de produção e automatização operacional das migrations continuam pendentes antes de usar dados reais.
+
+### Correção pós-demo: registo de orçamentos
+
+- Motivo: a rota `/quotes` herdada do upstream era um placeholder vazio, apesar de existir no menu.
+- Ficheiros principais: `src/modules/quotes/quote-list.controller.ts`, `src/modules/quotes/quote.model-action.ts`, `src/modules/quotes/interfaces/quote-summary.interface.ts`, `client/src/api/quotes.ts`, `client/src/pages/Quotes.tsx`.
+- Divergência: endpoint `GET /quotes` estritamente filtrado por organização e página PT-PT com pesquisa, métricas, cliente, valor, estado e link para revisão/PDF. O endpoint não expõe o caminho interno do object store e os totais agregados são separados por moeda.
+- Impacto no merge: baixo; endpoint e read model são aditivos e substituem apenas o componente placeholder.
+- Testes: isolamento/fail-closed do controller, query org-scoped, API client, estados/listagem e proibição de somar moedas distintas. Totais agregados: API 78 ficheiros/701 testes + 1 `todo`; client 44/378.

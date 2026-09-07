@@ -1,5 +1,5 @@
 import type { AxiosError } from 'axios';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import client from './client';
 import { requestKeys } from './requests';
 import type { QuoteDetail } from './requests';
@@ -7,6 +7,37 @@ import { GENERIC_ERROR } from '../lib/errorMessages';
 
 export interface ApproveQuoteResponse {
   quote: QuoteDetail;
+}
+
+export interface QuoteSummary {
+  id: string;
+  request_id: string;
+  quote_number: string;
+  status: 'draft' | 'approved' | 'ready' | 'sent';
+  total_minor: number;
+  currency: string;
+  customer_name: string | null;
+  customer_email: string | null;
+  pdf_ready: boolean;
+  created_at: string;
+}
+
+export const quoteKeys = {
+  all: () => ['quotes'] as const,
+  list: () => [...quoteKeys.all(), 'list'] as const,
+};
+
+export async function fetchQuotes(): Promise<QuoteSummary[]> {
+  const res = await client.get<{ data: QuoteSummary[] }>('/quotes');
+  return res.data.data;
+}
+
+export function useQuotes() {
+  return useQuery({
+    queryKey: quoteKeys.list(),
+    queryFn: fetchQuotes,
+    refetchInterval: 5000,
+  });
 }
 
 export async function approveQuote(requestId: string): Promise<ApproveQuoteResponse> {
@@ -41,6 +72,7 @@ export function useApproveQuote(requestId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: requestKeys.detail(requestId) });
       queryClient.invalidateQueries({ queryKey: requestKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: quoteKeys.list() });
     },
   });
 }
