@@ -231,7 +231,8 @@ export function priceCaixilhariaQuote(
       }
     }
 
-    if (hardwareRule && opening.opening_type !== null) {
+    // A fixed pane has no opening hardware; every operable type must map to a catalog SKU.
+    if (hardwareRule && opening.opening_type !== null && opening.opening_type !== 'fixo') {
       const skuCode = hardwareRule.sku_by_opening_type[opening.opening_type];
       if (!skuCode) {
         missingRules.push(`caixilharia.hardware.${opening.opening_type}`);

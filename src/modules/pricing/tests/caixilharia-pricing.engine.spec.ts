@@ -234,6 +234,32 @@ describe('priceCaixilhariaQuote', () => {
     expect(result.missingRules).toContain('critical_input.openings.J1.width_mm');
   });
 
+  it('does not require a hardware SKU for a fixed pane', () => {
+    const result = priceCaixilhariaQuote(
+      {
+        ...extraction,
+        caixilharia: {
+          ...extraction.caixilharia,
+          openings: [
+            {
+              ...extraction.caixilharia.openings[0],
+              opening_type: 'fixo',
+              blind: false,
+              insect_screen: false,
+            },
+          ],
+          remove_existing: false,
+          distance_km: null,
+        },
+      },
+      rules,
+      skus,
+    );
+
+    expect(result.blocked).toBe(false);
+    expect(result.lines.some((line) => line.description.includes('Ferragem'))).toBe(false);
+  });
+
   it('uses the organization IVA rate rather than a hardcoded percentage', () => {
     const result = priceCaixilhariaQuote(extraction, rules, skus, { taxRate: 0.06 });
 
