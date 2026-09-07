@@ -11,7 +11,7 @@ const colours: Record<RequestStatus, string> = {
   priced: 'bg-blue-100 text-blue-700',
   ready: 'bg-green-100 text-green-700',
   sent: 'bg-sent-bg text-sent-tx',
-  declined: 'bg-rose-100 text-rose-700',
+  declined: 'bg-error-bg text-error-tx',
   needs_clarification: 'bg-sky-100 text-sky-700',
   failed: 'bg-red-100 text-red-700',
 };

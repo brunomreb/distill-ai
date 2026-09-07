@@ -211,7 +211,7 @@ export function RemapDrawer({ requestId, lineId, lineLabel, onClose }: RemapDraw
               {candidates.isLoading ? (
                 <p className="text-sm text-muted">Loading candidates…</p>
               ) : candidates.isError ? (
-                <p className="text-sm text-rose-600">
+                <p className="text-sm text-error-tx">
                   Couldn't load candidates. Try the catalog search.
                 </p>
               ) : candidateOptions.length === 0 ? (
@@ -255,7 +255,7 @@ export function RemapDrawer({ requestId, lineId, lineLabel, onClose }: RemapDraw
               ) : search.isFetching ? (
                 <p className="text-sm text-muted">Searching…</p>
               ) : search.isError ? (
-                <p className="text-sm text-rose-600">Search failed. Please try again.</p>
+                <p className="text-sm text-error-tx">Search failed. Please try again.</p>
               ) : searchOptions.length === 0 ? (
                 // EC-02: a search with no hits shows a no-results state with a way to clear and retry.
                 <p className="text-sm text-muted">
@@ -279,7 +279,7 @@ export function RemapDrawer({ requestId, lineId, lineLabel, onClose }: RemapDraw
 
         <footer className="border-t border-border p-4">
           {remap.isError && (
-            <p className="mb-2 text-sm text-rose-600">{confirmErrorMessage(remap.error)}</p>
+            <p className="mb-2 text-sm text-error-tx">{confirmErrorMessage(remap.error)}</p>
           )}
           <div className="flex justify-end gap-2">
             <button

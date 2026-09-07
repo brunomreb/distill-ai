@@ -119,7 +119,7 @@ function BlockerDialog({
           <button
             type="button"
             onClick={onConfirm}
-            className="h-9 rounded-lg bg-rose-600 px-4 text-sm font-medium text-white hover:bg-rose-700"
+            className="h-9 rounded-lg bg-error-solid px-4 text-sm font-medium text-white hover:bg-error-solid-hover"
           >
             Descartar
           </button>

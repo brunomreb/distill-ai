@@ -149,7 +149,7 @@ export function DeclineModal({ requestId, open, onClose, triggerRef }: DeclineMo
             />
           )}
           {error && (
-            <p role="alert" className="text-sm text-rose-600">
+            <p role="alert" className="text-sm text-error-tx">
               {error}
             </p>
           )}
@@ -166,7 +166,7 @@ export function DeclineModal({ requestId, open, onClose, triggerRef }: DeclineMo
             type="button"
             onClick={handleConfirm}
             disabled={isConfirmDisabled}
-            className="h-9 px-4 rounded-button bg-rose-600 text-white text-[13px] font-medium hover:bg-rose-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-9 px-4 rounded-button bg-error-solid text-white text-[13px] font-medium hover:bg-error-solid-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {mutation.isPending ? 'A recusar…' : 'Confirmar recusa'}
           </button>

@@ -117,7 +117,7 @@ export function Review() {
 
     if (request.status === 'declined') {
       setActions(
-        <span className="text-sm font-medium text-rose-600">Este pedido foi recusado.</span>,
+        <span className="text-sm font-medium text-error-tx">Este pedido foi recusado.</span>,
       );
       return () => setActions(null);
     }

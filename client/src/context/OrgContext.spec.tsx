@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { useEffect } from 'react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { OrgProvider, STORAGE_KEY } from './OrgContext';
@@ -16,9 +17,12 @@ const orgs = [
   { id: 'org-caixilharia', name: 'Vãos do Norte', vertical: 'caixilharia' as const },
 ];
 
-function Consumer() {
-  const { organizations, selectedOrgId, setSelectedOrgId, isLoading } = useOrg();
-  if (isLoading) return <p>A carregar…</p>;
+function Consumer({ onMountEffect }: { onMountEffect?: () => void }) {
+  const { organizations, selectedOrgId, setSelectedOrgId } = useOrg();
+  // Mirrors a child's own data-fetch effect, to observe the header at the moment children first appear.
+  useEffect(() => {
+    onMountEffect?.();
+  }, [onMountEffect]);
   return (
     <div>
       <p data-testid="selected">{selectedOrgId ?? 'none'}</p>
@@ -31,11 +35,11 @@ function Consumer() {
   );
 }
 
-function renderConsumer(queryClient = new QueryClient()) {
+function renderConsumer(queryClient = new QueryClient(), onMountEffect?: () => void) {
   return render(
     <QueryClientProvider client={queryClient}>
       <OrgProvider>
-        <Consumer />
+        <Consumer onMountEffect={onMountEffect} />
       </OrgProvider>
     </QueryClientProvider>,
   );
@@ -45,6 +49,15 @@ describe('OrgProvider', () => {
   beforeEach(() => {
     localStorage.clear();
     mockUseOrganizations.mockReturnValue({ data: orgs, isLoading: false });
+  });
+
+  it('blocks children while the organization list is still loading', () => {
+    mockUseOrganizations.mockReturnValue({ data: undefined, isLoading: true });
+
+    renderConsumer();
+
+    expect(screen.queryByTestId('selected')).not.toBeInTheDocument();
+    expect(screen.getByText(/a validar organização/i)).toBeInTheDocument();
   });
 
   it('starts with no org selected when nothing is stored', () => {
@@ -63,16 +76,26 @@ describe('OrgProvider', () => {
   });
 
   it('drops a stored org id that no longer matches a known org, clearing storage and the header', () => {
-    const queryClient = new QueryClient();
-    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
     localStorage.setItem(STORAGE_KEY, 'org-deleted');
 
-    renderConsumer(queryClient);
+    renderConsumer();
 
     expect(screen.getByTestId('selected')).toHaveTextContent('none');
     expect(getDemoOrgId()).toBeNull();
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
-    expect(invalidateSpy).toHaveBeenCalled();
+  });
+
+  // Regression: children (and their first requests) used to mount before a post-commit effect
+  // had corrected the header for a stale persisted org. The header is now corrected synchronously
+  // during the same render that decides organizations are validated — the same render that first
+  // lets children exist — so no child's own mount effect can ever observe the stale value.
+  it('never lets a child observe the stale header, even in its own mount effect', () => {
+    localStorage.setItem(STORAGE_KEY, 'org-deleted');
+    const headerSeenOnMount: Array<string | null> = [];
+
+    renderConsumer(new QueryClient(), () => headerSeenOnMount.push(getDemoOrgId()));
+
+    expect(headerSeenOnMount).toEqual([null]);
   });
 
   it('persists the selection, injects the header, and invalidates queries', async () => {
@@ -90,7 +113,8 @@ describe('OrgProvider', () => {
   });
 
   // Regression: the header used to be set from a useEffect while invalidateQueries fired
-  // synchronously from the click handler, so refetches could race ahead of the new header.
+  // synchronously from the click handler, so refetches could race ahead of the new header. The
+  // click handler now sets the header synchronously, in the same function, before invalidating.
   it('applies the demo org header before invalidating queries on selection change', async () => {
     const queryClient = new QueryClient();
     const orgIdSeenByInvalidate: Array<string | null> = [];
@@ -100,7 +124,6 @@ describe('OrgProvider', () => {
     });
     const user = userEvent.setup();
     renderConsumer(queryClient);
-    orgIdSeenByInvalidate.length = 0; // mount invalidates too; isolate the click's own invalidation
 
     await user.click(screen.getByRole('button', { name: 'Vãos do Norte' }));
 

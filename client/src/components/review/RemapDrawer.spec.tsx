@@ -96,9 +96,23 @@ describe('RemapDrawer', () => {
     expect(screen.getByText(/no skus match/i)).toBeInTheDocument();
   });
 
+  it('shows the catalog search error with the Stratos error tokens, not rose', () => {
+    mockUseSkuSearch.mockReturnValue({ data: [], isFetching: false, isError: true });
+    renderDrawer();
+    fireEvent.click(screen.getByRole('tab', { name: /search catalog/i }));
+    fireEvent.change(screen.getByLabelText(/search catalog/i), { target: { value: 'zzz' } });
+
+    const error = screen.getByText(/search failed/i);
+    expect(error.className).not.toMatch(/rose/);
+    expect(error.className).toContain('text-error-tx');
+  });
+
   it('EC-03: a failed confirm surfaces the error', () => {
     mockUseRemap.mockReturnValue({ mutate: mockMutate, isPending: false, isError: true });
     renderDrawer();
-    expect(screen.getByText(/re-map failed/i)).toBeInTheDocument();
+    const error = screen.getByText(/re-map failed/i);
+    expect(error).toBeInTheDocument();
+    expect(error.className).not.toMatch(/rose/);
+    expect(error.className).toContain('text-error-tx');
   });
 });

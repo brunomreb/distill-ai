@@ -64,6 +64,14 @@ describe('DeclineModal', () => {
     expect(screen.getByRole('button', { name: /confirmar recusa/i })).toBeDisabled();
   });
 
+  // Brand rule: no rose/pink — the destructive action uses the Stratos error tokens.
+  it('renders the destructive Confirm action with the Stratos error tokens, not rose', () => {
+    renderModal();
+    const confirmButton = screen.getByRole('button', { name: /confirmar recusa/i });
+    expect(confirmButton.className).not.toMatch(/rose/);
+    expect(confirmButton.className).toContain('bg-error-solid');
+  });
+
   it('shows custom reason input when Other is selected', async () => {
     const user = userEvent.setup();
     renderModal();
@@ -114,7 +122,10 @@ describe('DeclineModal', () => {
       } as AxiosError<{ message?: string }>);
     });
 
-    expect(screen.getByText('Request already processed.')).toBeInTheDocument();
+    const alert = screen.getByText('Request already processed.');
+    expect(alert).toBeInTheDocument();
+    expect(alert.className).not.toMatch(/rose/);
+    expect(alert.className).toContain('text-error-tx');
   });
 
   it('shows generic error on 5xx', async () => {

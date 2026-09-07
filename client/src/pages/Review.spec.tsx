@@ -227,7 +227,10 @@ describe('Review', () => {
     renderReview();
 
     expect(screen.queryByRole('button', { name: /recusar/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/este pedido foi recusado/i)).toBeInTheDocument();
+    const notice = screen.getByText(/este pedido foi recusado/i);
+    expect(notice).toBeInTheDocument();
+    expect(notice.className).not.toMatch(/rose/);
+    expect(notice.className).toContain('text-error-tx');
   });
 
   it('renders the back button in the title slot', () => {

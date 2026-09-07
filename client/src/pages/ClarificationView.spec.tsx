@@ -280,6 +280,19 @@ describe('ClarificationView', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
+  it('renders the destructive Discard action with the Stratos error tokens, not rose', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    const subjectInput = screen.getByLabelText('Assunto');
+    await user.type(subjectInput, ' changed');
+    await user.click(screen.getByRole('button', { name: /cancelar/i }));
+
+    const discardButton = screen.getByRole('button', { name: /descartar/i });
+    expect(discardButton.className).not.toMatch(/rose/);
+    expect(discardButton.className).toContain('bg-error-solid');
+  });
+
   it('stays on the page after clicking Stay in the blocker dialog', async () => {
     const user = userEvent.setup();
     renderPage();

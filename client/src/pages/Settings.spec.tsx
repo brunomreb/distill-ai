@@ -54,14 +54,6 @@ describe('Settings — demo org switcher', () => {
 
     expect(getDemoOrgId()).toBe('org-caixilharia');
   });
-
-  it('shows a loading message while the org list is loading', () => {
-    mockUseOrganizations.mockReturnValue({ data: undefined, isLoading: true });
-
-    renderSettings();
-
-    expect(screen.getByText(/a carregar organizações/i)).toBeInTheDocument();
-  });
 });
 
 describe('Settings — PT-PT copy', () => {

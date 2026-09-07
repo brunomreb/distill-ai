@@ -25,22 +25,29 @@
   --color-success-text: #5eead4;
   --color-banner-text: #c7cbd6;
 
-  /* confidence system: sacred, never repurpose for decoration */
+  /* confidence system: sacred, never repurpose for decoration. Low-confidence shares the official
+     Stratos functional red (#c2645f) with the error tokens below — no rose/pink anywhere. */
   --color-hi-bg: #0b2524;
   --color-hi-tx: #5eead4;
   --color-hi-dot: #5eead4;
   --color-md-bg: #2a2109;
   --color-md-tx: #fbbf24;
   --color-md-dot: #f59e0b;
-  --color-lo-bg: #2b1014;
-  --color-lo-tx: #fb7185;
-  --color-lo-dot: #ef4444;
+  --color-lo-bg: #2a1613;
+  --color-lo-tx: #c2645f;
+  --color-lo-dot: #c2645f;
 
   /* request status badge colours */
   --color-parse-bg: #10243a;
   --color-parse-tx: #60a5fa;
   --color-sent-bg: #17191f;
   --color-sent-tx: #a7b0bc;
+
+  /* error/destructive: the one official Stratos functional red (#c2645f). Never rose/pink. */
+  --color-error-bg: #2a1613;
+  --color-error-tx: #c2645f;
+  --color-error-solid: #c2645f;
+  --color-error-solid-hover: #a2504b;
 
   /* shape tokens */
   --radius-card: 12px;

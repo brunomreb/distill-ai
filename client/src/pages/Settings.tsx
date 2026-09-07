@@ -33,7 +33,7 @@ const THRESHOLDS = [
 
 export function Settings() {
   const { role, setRole } = useRole();
-  const { organizations, selectedOrgId, setSelectedOrgId, isLoading: orgsLoading } = useOrg();
+  const { organizations, selectedOrgId, setSelectedOrgId } = useOrg();
   const navigate = useNavigate();
   const location = useLocation();
   // No stored selection means the server default (the AVAC demo org) is in effect; reflect that
@@ -59,28 +59,24 @@ export function Settings() {
           Muda entre as organizações fictícias para ver os dados isolados por vertical
           (AUTH_ENABLED=false).
         </p>
-        {orgsLoading ? (
-          <p className="text-sm text-muted">A carregar organizações…</p>
-        ) : (
-          <div className="flex flex-wrap gap-3">
-            {organizations.map((org) => (
-              <label
-                key={org.id}
-                className="flex items-center gap-2 cursor-pointer select-none text-sm text-slate-900"
-              >
-                <input
-                  type="radio"
-                  name="demo-org"
-                  value={org.id}
-                  checked={effectiveOrgId === org.id}
-                  onChange={() => setSelectedOrgId(org.id)}
-                  className="accent-indigo-600"
-                />
-                {org.name} · {verticalLabels[org.vertical]}
-              </label>
-            ))}
-          </div>
-        )}
+        <div className="flex flex-wrap gap-3">
+          {organizations.map((org) => (
+            <label
+              key={org.id}
+              className="flex items-center gap-2 cursor-pointer select-none text-sm text-slate-900"
+            >
+              <input
+                type="radio"
+                name="demo-org"
+                value={org.id}
+                checked={effectiveOrgId === org.id}
+                onChange={() => setSelectedOrgId(org.id)}
+                className="accent-indigo-600"
+              />
+              {org.name} · {verticalLabels[org.vertical]}
+            </label>
+          ))}
+        </div>
       </section>
 
       {/* Role switcher */}

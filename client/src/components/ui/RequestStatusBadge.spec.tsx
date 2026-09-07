@@ -32,11 +32,13 @@ describe('RequestStatusBadge', () => {
     expect(container.firstChild).toHaveClass('bg-red-100', 'text-red-700');
   });
 
-  // Brand rule: no violet/purple/pink anywhere in the client.
-  it('never renders a violet, purple, or pink class for any status', () => {
+  // Brand rule: no violet/purple/pink/rose anywhere in the client.
+  it('never renders a violet, purple, pink, or rose class for any status', () => {
     for (const { status } of cases) {
       const { container, unmount } = render(<RequestStatusBadge status={status} />);
-      expect((container.firstChild as HTMLElement).className).not.toMatch(/violet|purple|pink/);
+      expect((container.firstChild as HTMLElement).className).not.toMatch(
+        /violet|purple|pink|rose/,
+      );
       unmount();
     }
   });
@@ -44,5 +46,10 @@ describe('RequestStatusBadge', () => {
   it('uses a non-violet palette for priced', () => {
     const { container } = render(<RequestStatusBadge status="priced" />);
     expect(container.firstChild).toHaveClass('bg-blue-100', 'text-blue-700');
+  });
+
+  it('uses the Stratos error tokens for declined', () => {
+    const { container } = render(<RequestStatusBadge status="declined" />);
+    expect(container.firstChild).toHaveClass('bg-error-bg', 'text-error-tx');
   });
 });

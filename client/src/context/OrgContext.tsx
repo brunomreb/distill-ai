@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOrganizations } from '../api/organizations';
@@ -12,7 +12,6 @@ export interface OrgContextValue {
   organizations: Organization[];
   selectedOrgId: string | null;
   setSelectedOrgId: (id: string) => void;
-  isLoading: boolean;
 }
 
 export const OrgContext = createContext<OrgContextValue | null>(null);
@@ -42,43 +41,49 @@ function writeStoredOrgId(id: string | null): void {
 // requests fire headerless while waiting for a post-mount effect to catch up.
 setDemoOrgId(readStoredOrgId());
 
+/**
+ * Blocks children until the org list has loaded and the persisted selection has been validated
+ * against it. No setState ever runs during render or inside an effect: the raw selection lives in
+ * React state (only ever written from the explicit setSelectedOrgId call below, a plain event
+ * handler — never an effect), and the validated value used everywhere else is derived from it on
+ * every render. Because children don't exist in the tree until that derivation has happened,
+ * there's no commit in which a child (or its own mount effect) can observe a stale or invalid
+ * X-Demo-Org-Id header.
+ */
 export function OrgProvider({ children }: { children: ReactNode }) {
   const { data: organizations, isLoading } = useOrganizations();
   const queryClient = useQueryClient();
-  const [selectedOrgId, setSelectedOrgIdState] = useState<string | null>(readStoredOrgId);
+  const [rawSelectedOrgId, setRawSelectedOrgId] = useState<string | null>(readStoredOrgId);
 
-  // A stored id can outlive the org it named (seed reset, demo data wiped). Resetting the React
-  // state itself happens during render (React's sanctioned pattern for deriving state from a prop
-  // change, see "Storing information from previous renders") rather than in an effect, so it never
-  // costs an extra commit. The side effects that follow from a real selection change — the axios
-  // header, localStorage, and query invalidation — are handled uniformly below, keyed off
-  // selectedOrgId, so they fire whether the change came from the user or from this reset.
-  const [checkedOrgs, setCheckedOrgs] = useState<Organization[] | undefined>(undefined);
-  if (organizations && organizations !== checkedOrgs) {
-    setCheckedOrgs(organizations);
-    if (selectedOrgId && !organizations.some((org) => org.id === selectedOrgId)) {
-      setSelectedOrgIdState(null);
-    }
+  if (isLoading || !organizations) {
+    return (
+      <div className="flex h-full items-center justify-center px-6 py-6 text-sm text-muted">
+        A validar organização…
+      </div>
+    );
   }
 
-  useEffect(() => {
-    // Order matters: the header must land before any query this invalidation wakes up refetches.
-    // Runs on every selectedOrgId change, mount included — a stale-id reset can follow an
-    // org list that only arrived after children already fetched under the wrong header, so
-    // there's no "first run is always safe to skip" case to special-case here.
-    setDemoOrgId(selectedOrgId);
-    writeStoredOrgId(selectedOrgId);
-    void queryClient.invalidateQueries();
-  }, [selectedOrgId, queryClient]);
+  const selectedOrgId =
+    rawSelectedOrgId && organizations.some((org) => org.id === rawSelectedOrgId)
+      ? rawSelectedOrgId
+      : null;
+
+  // Keeps the axios header and localStorage in lockstep with the validated selection above,
+  // synchronously during render (not an effect) — setDemoOrgId/writeStoredOrgId are plain module
+  // functions, not React state setters, so this isn't a React setState-during-render.
+  setDemoOrgId(selectedOrgId);
+  writeStoredOrgId(selectedOrgId);
 
   function setSelectedOrgId(id: string) {
-    setSelectedOrgIdState(id);
+    // Order matters: the header must land before invalidateQueries wakes any query that reads it.
+    setDemoOrgId(id);
+    writeStoredOrgId(id);
+    setRawSelectedOrgId(id);
+    void queryClient.invalidateQueries();
   }
 
   return (
-    <OrgContext.Provider
-      value={{ organizations: organizations ?? [], selectedOrgId, setSelectedOrgId, isLoading }}
-    >
+    <OrgContext.Provider value={{ organizations, selectedOrgId, setSelectedOrgId }}>
       {children}
     </OrgContext.Provider>
   );
