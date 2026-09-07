@@ -7,6 +7,7 @@ import {
 } from '../../api/interface/request-status';
 import { RequestStatusBadge } from '../ui/RequestStatusBadge';
 import { ConfidenceBadge } from '../ui/ConfidenceBadge';
+import { VerticalBadge } from '../ui/VerticalBadge';
 import { formatRelativeTime } from '../../lib/formatRelativeTime';
 
 interface RequestRowProps {
@@ -48,9 +49,12 @@ export function RequestRow({ request }: RequestRowProps) {
       </td>
       <td className="px-4 py-3 text-sm text-body-text">{request.source_subject ?? '-'}</td>
       <td className="px-4 py-3">
-        <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
-          {requestTypeLabels[requestType]}
-        </span>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+            {requestTypeLabels[requestType]}
+          </span>
+          <VerticalBadge vertical={request.vertical} />
+        </div>
       </td>
       <td className="px-4 py-3">
         <ConfidenceBadge value={request.overall_confidence} />

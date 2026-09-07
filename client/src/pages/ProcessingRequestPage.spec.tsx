@@ -52,6 +52,7 @@ const detail: RequestDetail = {
     },
   ],
   quote: null,
+  vertical: 'avac',
 };
 
 function renderPage() {

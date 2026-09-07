@@ -3,6 +3,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
 
+// A stable reference, not a literal recreated on every call: OrgProvider compares organizations
+// by reference to know when the real list has arrived, and a fresh array per render would loop.
+const noOrgs: never[] = [];
+vi.mock('./api/organizations', () => ({
+  useOrganizations: () => ({ data: noOrgs, isLoading: false }),
+}));
+
 function renderApp() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(

@@ -38,6 +38,7 @@ function makeRequest(overrides: Partial<RequestSummary> = {}): RequestSummary {
     overall_confidence: 0.96,
     status: 'needs_review',
     created_at: '2026-06-24T10:00:00.000Z',
+    vertical: 'avac',
     ...overrides,
   };
 }
@@ -286,6 +287,29 @@ describe('Inbox', () => {
     expect(screen.getByRole('link', { name: /apex fabrication/i })).toBeInTheDocument();
     expect(screen.getByText(/rfq for steel brackets/i)).toBeInTheDocument();
     expect(screen.getByText('Enviado')).toBeInTheDocument();
+  });
+
+  it('shows the vertical badge for a request with a known vertical', () => {
+    requestsState.value = {
+      data: [makeRequest({ vertical: 'caixilharia' })],
+      isLoading: false,
+      isError: false,
+    };
+    renderInbox();
+
+    expect(screen.getByText('Caixilharia')).toBeInTheDocument();
+  });
+
+  it('shows no vertical badge while the vertical is not yet known', () => {
+    requestsState.value = {
+      data: [makeRequest({ vertical: null })],
+      isLoading: false,
+      isError: false,
+    };
+    renderInbox();
+
+    expect(screen.queryByText('AVAC')).not.toBeInTheDocument();
+    expect(screen.queryByText('Caixilharia')).not.toBeInTheDocument();
   });
 
   it('links each row to its processing screen', () => {

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuotes, type QuoteSummary } from '../api/quotes';
 import { ErrorBanner } from '../components/inbox/ErrorBanner';
+import { VerticalBadge } from '../components/ui/VerticalBadge';
 import { usePageHeader } from '../context/PageHeaderContext';
 import { formatMoney } from '../lib/formatMoney';
 
@@ -13,10 +14,13 @@ const STATUS_LABELS: Record<QuoteSummary['status'], string> = {
   sent: 'Enviado',
 };
 
+// 'approved' reuses the dedicated in-progress token (also used by the Inbox's 'parsing' status)
+// instead of a raw, undocumented Tailwind colour; 'ready' matches RequestStatusBadge's colour for
+// the same status name so the two registers read consistently.
 const STATUS_STYLES: Record<QuoteSummary['status'], string> = {
   draft: 'bg-amber-100 text-amber-800',
-  approved: 'bg-sky-100 text-sky-700',
-  ready: 'bg-emerald-100 text-emerald-700',
+  approved: 'bg-parse-bg text-parse-tx',
+  ready: 'bg-green-100 text-green-700',
   sent: 'bg-sent-bg text-sent-tx',
 };
 
@@ -93,7 +97,7 @@ export function Quotes() {
           <table className="w-full min-w-[760px] border-collapse text-left">
             <thead>
               <tr className="border-b border-border">
-                {['Orçamento', 'Cliente', 'Valor', 'Estado', 'Criado', 'Documento'].map(
+                {['Orçamento', 'Vertical', 'Cliente', 'Valor', 'Estado', 'Criado', 'Documento'].map(
                   (column) => (
                     <th
                       key={column}
@@ -138,7 +142,7 @@ function SummaryCard({ label, value }: { label: string; value: string }) {
 function StateRow({ children }: { children: ReactNode }) {
   return (
     <tr>
-      <td colSpan={6} className="px-4 py-12 text-center text-sm text-muted">
+      <td colSpan={7} className="px-4 py-12 text-center text-sm text-muted">
         {children}
       </td>
     </tr>
@@ -156,6 +160,9 @@ function QuoteRow({ quote }: { quote: QuoteSummary }) {
         >
           {quote.quote_number}
         </Link>
+      </td>
+      <td className="px-4 py-3">
+        <VerticalBadge vertical={quote.vertical} />
       </td>
       <td className="px-4 py-3">
         <p className="text-sm font-medium text-body-text">{customer}</p>

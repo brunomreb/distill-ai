@@ -4,6 +4,7 @@ import client from './client';
 import { requestKeys } from './requests';
 import type { QuoteDetail } from './requests';
 import { GENERIC_ERROR } from '../lib/errorMessages';
+import type { Vertical } from '../lib/vertical';
 
 export interface ApproveQuoteResponse {
   quote: QuoteDetail;
@@ -20,6 +21,7 @@ export interface QuoteSummary {
   customer_email: string | null;
   pdf_ready: boolean;
   created_at: string;
+  vertical: Vertical | null;
 }
 
 export const quoteKeys = {

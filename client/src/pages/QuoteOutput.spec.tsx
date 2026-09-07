@@ -88,6 +88,7 @@ const requestFixture: RequestDetail = {
   routing_reasons: [],
   line_items: [],
   quote: draftQuote,
+  vertical: 'avac',
 };
 
 function PageHeaderSlots() {
@@ -145,6 +146,19 @@ describe('QuoteOutput', () => {
     const approveButton = screen.getByRole('button', { name: /aprovar orçamento/i });
     expect(approveButton).toBeEnabled();
     expect(approveButton.textContent?.toLowerCase()).not.toMatch(/send/);
+  });
+
+  it('shows the vertical badge next to the quote title', () => {
+    mockUseRequest.mockReturnValue({
+      data: requestFixture,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+
+    renderQuoteOutput();
+
+    expect(screen.getByText('AVAC')).toBeInTheDocument();
   });
 
   it('calls approveQuote.mutate when approval is clicked', async () => {

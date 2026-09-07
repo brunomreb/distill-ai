@@ -23,6 +23,7 @@ const quote: QuoteSummary = {
   customer_email: 'joao@example.pt',
   pdf_ready: true,
   created_at: '2026-09-07T12:00:00.000Z',
+  vertical: 'avac',
 };
 
 function renderQuotes() {
@@ -50,10 +51,26 @@ describe('Quotes', () => {
     expect(screen.getByText('João Martins')).toBeInTheDocument();
     expect(screen.getAllByText('8315,27 EUR')).toHaveLength(2);
     expect(screen.getByText('PDF pronto')).toBeInTheDocument();
+    expect(screen.getByText('AVAC')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Ver PDF' })).toHaveAttribute(
       'href',
       '/requests/request-1/quote',
     );
+  });
+
+  it('reuses the shared in-progress token for the approved status pill', () => {
+    mockUseQuotes.mockReturnValue({
+      data: [{ ...quote, status: 'approved' }],
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+
+    renderQuotes();
+
+    const pill = screen.getByText('Aprovado');
+    expect(pill.className).toContain('bg-parse-bg');
+    expect(pill.className).toContain('text-parse-tx');
   });
 
   it('filters by customer without losing the aggregate cards', async () => {

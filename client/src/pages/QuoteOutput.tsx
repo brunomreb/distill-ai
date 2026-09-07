@@ -7,6 +7,7 @@ import { useClipboardCopy } from '../hooks/useClipboardCopy';
 import { ErrorBanner } from '../components/inbox/ErrorBanner';
 import { QuoteDocumentPanel } from '../components/quote/QuoteDocumentPanel';
 import { QuoteContextCard } from '../components/quote/QuoteContextCard';
+import { VerticalBadge } from '../components/ui/VerticalBadge';
 import { EmailDraftPanel } from '../components/shared/EmailDraftPanel';
 import { usePageHeader } from '../context/PageHeaderContext';
 import { ChevronLeftIcon } from '../components/ui/ChevronLeftIcon';
@@ -57,10 +58,11 @@ export function QuoteOutput() {
         <h1 className="truncate text-lg font-semibold text-slate-900">
           Orçamento {quote ? `· ${quote.quote_number}` : ''}
         </h1>
+        <VerticalBadge vertical={request?.vertical ?? null} />
       </div>,
     );
     return () => setTitle(null);
-  }, [id, quote, setTitle]);
+  }, [id, quote, request, setTitle]);
 
   const handleDownload = useCallback(async () => {
     if (!id || !isReady) return;

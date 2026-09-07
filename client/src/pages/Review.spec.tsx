@@ -107,6 +107,7 @@ const detail: RequestDetail = {
       },
     ],
   },
+  vertical: 'avac',
 };
 
 function PageHeaderSlots() {
@@ -163,6 +164,13 @@ describe('Review', () => {
     expect(screen.getByText('dana@apex.example')).toBeInTheDocument();
     expect(screen.getByText(/please quote 200 steel brackets/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /descarregar rfq_apex\.pdf/i })).toBeInTheDocument();
+  });
+
+  it('shows the vertical badge in the header info row', () => {
+    mockUseRequest.mockReturnValue({ data: detail, isLoading: false, isError: false });
+    renderReview();
+
+    expect(screen.getByText('AVAC')).toBeInTheDocument();
   });
 
   it('renders all three panes with real parsed lines and the suggested-quote total (AC-01, AC-03)', () => {

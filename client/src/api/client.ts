@@ -1,5 +1,6 @@
 import axios, { type AxiosError } from 'axios';
 import logger from '../lib/logger';
+import { applyDemoOrgHeader } from './demoOrg';
 
 const log = logger.child('api');
 
@@ -8,6 +9,7 @@ const client = axios.create({ baseURL: '/api/v1' });
 client.interceptors.request.use((config) => {
   const requestId = crypto.randomUUID();
   config.headers['X-Request-Id'] = requestId;
+  applyDemoOrgHeader(config.headers);
   log.debug(`→ ${config.method?.toUpperCase()} ${config.url}`, { requestId });
   return config;
 });

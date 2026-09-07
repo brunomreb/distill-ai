@@ -1,6 +1,8 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useRole } from '../hooks/useRole';
+import { useOrg } from '../hooks/useOrg';
 import type { Role } from '../context/RoleContext';
+import { verticalLabels } from '../lib/vertical';
 
 const ROLES: { value: Role; label: string; description: string }[] = [
   {
@@ -30,8 +32,13 @@ const THRESHOLDS = [
 
 export function Settings() {
   const { role, setRole } = useRole();
+  const { organizations, selectedOrgId, setSelectedOrgId, isLoading: orgsLoading } = useOrg();
   const navigate = useNavigate();
   const location = useLocation();
+  // No stored selection means the server default (the AVAC demo org) is in effect; reflect that
+  // in the radio group so the control never shows nothing selected once orgs have loaded.
+  const effectiveOrgId =
+    selectedOrgId ?? organizations.find((org) => org.vertical === 'avac')?.id ?? null;
 
   function handleRoleChange(next: Role) {
     setRole(next);
@@ -43,6 +50,37 @@ export function Settings() {
   return (
     <div className="px-6 py-6 max-w-2xl">
       <h1 className="text-xl font-semibold text-slate-900 mb-6">Settings</h1>
+
+      {/* Demo org switcher */}
+      <section className="bg-surface border border-border rounded-card p-5 mb-4">
+        <h2 className="text-sm font-semibold text-slate-900 mb-1">Organização de demonstração</h2>
+        <p className="text-sm text-body-text mb-4">
+          Muda entre as organizações fictícias para ver os dados isolados por vertical
+          (AUTH_ENABLED=false).
+        </p>
+        {orgsLoading ? (
+          <p className="text-sm text-muted">A carregar organizações…</p>
+        ) : (
+          <div className="flex flex-wrap gap-3">
+            {organizations.map((org) => (
+              <label
+                key={org.id}
+                className="flex items-center gap-2 cursor-pointer select-none text-sm text-slate-900"
+              >
+                <input
+                  type="radio"
+                  name="demo-org"
+                  value={org.id}
+                  checked={effectiveOrgId === org.id}
+                  onChange={() => setSelectedOrgId(org.id)}
+                  className="accent-indigo-600"
+                />
+                {org.name} · {verticalLabels[org.vertical]}
+              </label>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Role switcher */}
       <section className="bg-surface border border-border rounded-card p-5 mb-4">

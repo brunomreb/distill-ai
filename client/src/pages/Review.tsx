@@ -11,6 +11,7 @@ import { CopilotExplanationBlock } from '../components/review/CopilotExplanation
 import { AskCopilotPanel } from '../components/review/AskCopilotPanel';
 import { useCopilotExplanation } from '../api/copilotExplanation';
 import { ErrorBanner } from '../components/inbox/ErrorBanner';
+import { VerticalBadge } from '../components/ui/VerticalBadge';
 import { usePageHeader } from '../context/PageHeaderContext';
 import { QuestionMarkCircleIcon } from '../components/ui/QuestionMarkCircleIcon';
 import { ChevronLeftIcon } from '../components/ui/ChevronLeftIcon';
@@ -189,6 +190,7 @@ export function Review() {
             <span className="rounded bg-canvas px-2 py-0.5 text-xs font-medium text-body-text">
               {REQUEST_TYPE_LABELS[request.request_type] ?? request.request_type}
             </span>
+            <VerticalBadge vertical={request.vertical} />
             <ConfidenceRoutingBadge
               confidence={request.overall_confidence}
               routing={request.routing}

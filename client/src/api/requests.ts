@@ -6,6 +6,7 @@ import { resolveServerError } from '../lib/errorMessages';
 import type { RequestStatus, RequestType } from './interface/request-status';
 import { isRequestStatus } from './interface/request-status';
 import type { RoutingReason } from './interface/routing-reason';
+import type { Vertical } from '../lib/vertical';
 export type { RoutingReason };
 
 export const requestKeys = {
@@ -90,6 +91,7 @@ export interface RequestDetail {
   routing_reasons: RoutingReason[];
   line_items: LineItemDetail[];
   quote: QuoteDetail | null;
+  vertical: Vertical | null;
 }
 
 export async function fetchRequest(id: string): Promise<RequestDetail> {
@@ -134,6 +136,7 @@ export interface RequestSummary {
   overall_confidence: number | null;
   status: RequestStatus;
   created_at: string;
+  vertical: Vertical | null;
 }
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -201,6 +204,8 @@ export function buildOptimisticSummary(
     overall_confidence: null,
     status,
     created_at: createdAt,
+    // Unknown until the LLM parses the request; the real row arrives on the next GET /requests refetch.
+    vertical: null,
   };
 }
 

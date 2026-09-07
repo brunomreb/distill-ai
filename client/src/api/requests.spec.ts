@@ -137,6 +137,7 @@ describe('buildOptimisticSummary', () => {
       overall_confidence: null,
       status: 'parsing',
       created_at: createdAt,
+      vertical: null,
     });
   });
 

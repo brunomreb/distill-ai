@@ -55,6 +55,7 @@ const requestFixture: RequestDetail = {
   routing_reasons: [],
   line_items: [],
   quote: quoteFixture,
+  vertical: 'avac',
 };
 
 function makeQueryClient() {
