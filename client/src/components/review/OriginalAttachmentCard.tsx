@@ -5,9 +5,9 @@ import { formatFileSize } from '../../lib/formatFileSize';
 import { ATTACHMENT_DOWNLOAD_FAILED } from '../../lib/errorMessages';
 
 function labelForMime(mime: string): string {
-  if (mime === 'application/pdf') return 'PDF Document';
-  if (mime === 'text/csv') return 'CSV Document';
-  if (mime.startsWith('text/')) return 'Text Document';
+  if (mime === 'application/pdf') return 'Documento PDF';
+  if (mime === 'text/csv') return 'Documento CSV';
+  if (mime.startsWith('text/')) return 'Documento de texto';
   return mime;
 }
 
@@ -82,7 +82,7 @@ export function OriginalAttachmentCard({
         type="button"
         onClick={handleDownload}
         disabled={downloading}
-        aria-label={`Download ${attachment.filename}`}
+        aria-label={`Descarregar ${attachment.filename}`}
         className="inline-flex h-8 w-8 items-center justify-center rounded-button border border-border text-body-text transition-colors hover:bg-surface hover:text-accent disabled:opacity-50"
       >
         <DownloadIcon />

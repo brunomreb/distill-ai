@@ -10,7 +10,7 @@ interface InboxListProps {
   isFiltered?: boolean;
 }
 
-const columns = ['Company & contact', 'Subject', 'Type', 'Confidence', 'Received', 'Status'];
+const columns = ['Empresa e contacto', 'Assunto', 'Tipo', 'Confiança', 'Recebido', 'Estado'];
 
 function StateRow({ children }: { children: ReactNode }) {
   return (
@@ -41,12 +41,12 @@ export function InboxList({ requests, isLoading, isError, isFiltered = false }: 
         </thead>
         <tbody>
           {isLoading && requests.length === 0 ? (
-            <StateRow>Loading requests…</StateRow>
+            <StateRow>A carregar pedidos…</StateRow>
           ) : isError && requests.length === 0 ? (
-            <StateRow>Could not load requests. Retrying…</StateRow>
+            <StateRow>Não foi possível carregar os pedidos. A tentar novamente…</StateRow>
           ) : requests.length === 0 ? (
             <StateRow>
-              {isFiltered ? 'No requests match the current filters.' : 'No requests yet.'}
+              {isFiltered ? 'Nenhum pedido corresponde aos filtros.' : 'Ainda não existem pedidos.'}
             </StateRow>
           ) : (
             requests.map((request) => <RequestRow key={request.id} request={request} />)

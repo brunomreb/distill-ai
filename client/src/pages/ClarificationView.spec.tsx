@@ -95,7 +95,7 @@ describe('ClarificationView', () => {
   it('renders the loading state while clarification loads', () => {
     mockUseClarification.mockReturnValue({ data: undefined, isLoading: true, isError: false });
     renderPage();
-    expect(screen.getByText(/loading clarification/i)).toBeInTheDocument();
+    expect(screen.getByText(/a carregar esclarecimento/i)).toBeInTheDocument();
   });
 
   it('renders the error state with retry when clarification fails to load', () => {
@@ -107,14 +107,14 @@ describe('ClarificationView', () => {
       refetch,
     });
     renderPage();
-    expect(screen.getByText(/could not load clarification/i)).toBeInTheDocument();
-    screen.getByRole('button', { name: /retry/i }).click();
+    expect(screen.getByText(/não foi possível carregar o esclarecimento/i)).toBeInTheDocument();
+    screen.getByRole('button', { name: /tentar novamente/i }).click();
     expect(refetch).toHaveBeenCalled();
   });
 
   it('renders the gaps checklist from the stored clarification (AC-02)', () => {
     renderPage();
-    expect(screen.getByText(/detected gaps/i)).toBeInTheDocument();
+    expect(screen.getByText(/informação em falta/i)).toBeInTheDocument();
     expect(screen.getByText('Missing delivery date')).toBeInTheDocument();
     expect(screen.getByText('No contact name provided')).toBeInTheDocument();
     expect(screen.getByText('Incomplete billing address')).toBeInTheDocument();
@@ -122,15 +122,15 @@ describe('ClarificationView', () => {
 
   it('renders the editable draft subject and body from the stored clarification (AC-02)', () => {
     renderPage();
-    const subjectInput = screen.getByLabelText('Subject') as HTMLInputElement;
-    const bodyTextarea = screen.getByLabelText('Body') as HTMLTextAreaElement;
+    const subjectInput = screen.getByLabelText('Assunto') as HTMLInputElement;
+    const bodyTextarea = screen.getByLabelText('Mensagem') as HTMLTextAreaElement;
     expect(subjectInput.value).toBe('Request for additional details');
     expect(bodyTextarea.value).toContain('Dear customer');
   });
 
   it('shows the heading with the sender company name', () => {
     renderPage();
-    expect(screen.getByText(/clarification · apex fabrication/i)).toBeInTheDocument();
+    expect(screen.getByText(/esclarecimento · apex fabrication/i)).toBeInTheDocument();
   });
 
   it('disables the Send button when subject is empty (EC-02)', () => {
@@ -140,7 +140,7 @@ describe('ClarificationView', () => {
       isError: false,
     });
     renderPage();
-    expect(screen.getByRole('button', { name: /send clarification/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /enviar esclarecimento/i })).toBeDisabled();
   });
 
   it('disables the Send button when body is empty (EC-02)', () => {
@@ -150,12 +150,12 @@ describe('ClarificationView', () => {
       isError: false,
     });
     renderPage();
-    expect(screen.getByRole('button', { name: /send clarification/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /enviar esclarecimento/i })).toBeDisabled();
   });
 
   it('enables the Send button when both subject and body are filled', () => {
     renderPage();
-    expect(screen.getByRole('button', { name: /send clarification/i })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /enviar esclarecimento/i })).toBeEnabled();
   });
 
   it('calls updateDraft then send when Send is clicked and draft is dirty (AC-01)', async () => {
@@ -169,10 +169,10 @@ describe('ClarificationView', () => {
 
     renderPage();
 
-    const subjectInput = screen.getByLabelText('Subject');
+    const subjectInput = screen.getByLabelText('Assunto');
     await user.type(subjectInput, ' edited');
 
-    await user.click(screen.getByRole('button', { name: /send clarification/i }));
+    await user.click(screen.getByRole('button', { name: /enviar esclarecimento/i }));
 
     expect(updateAsync).toHaveBeenCalledWith({
       clarificationId: 'clar-1',
@@ -198,7 +198,7 @@ describe('ClarificationView', () => {
 
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: /send clarification/i }));
+    await user.click(screen.getByRole('button', { name: /enviar esclarecimento/i }));
 
     expect(updateAsync).not.toHaveBeenCalled();
     expect(sendAsync).toHaveBeenCalled();
@@ -213,11 +213,11 @@ describe('ClarificationView', () => {
 
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: /send clarification/i }));
+    await user.click(screen.getByRole('button', { name: /enviar esclarecimento/i }));
 
     expect(await screen.findByText('Server error sending clarification')).toBeInTheDocument();
-    expect(screen.getByLabelText('Subject')).not.toBeDisabled();
-    expect(screen.getByLabelText('Body')).not.toBeDisabled();
+    expect(screen.getByLabelText('Assunto')).not.toBeDisabled();
+    expect(screen.getByLabelText('Mensagem')).not.toBeDisabled();
   });
 
   it('shows a generic error when send fails without a server message (EC-03)', async () => {
@@ -227,40 +227,42 @@ describe('ClarificationView', () => {
 
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: /send clarification/i }));
+    await user.click(screen.getByRole('button', { name: /enviar esclarecimento/i }));
 
-    expect(await screen.findByText('Failed to send clarification.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Não foi possível enviar o esclarecimento.'),
+    ).toBeInTheDocument();
   });
 
   it('shows the unsaved changes blocker dialog when clicking Cancel with dirty edits (EC-01)', async () => {
     const user = userEvent.setup();
     renderPage();
 
-    const subjectInput = screen.getByLabelText('Subject');
+    const subjectInput = screen.getByLabelText('Assunto');
     await user.type(subjectInput, ' changed');
 
-    await user.click(screen.getByRole('button', { name: /cancel/i }));
+    await user.click(screen.getByRole('button', { name: /cancelar/i }));
 
-    expect(screen.getByRole('dialog', { name: /unsaved changes/i })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: /alterações por guardar/i })).toBeInTheDocument();
   });
 
   it('shows the unsaved changes blocker dialog when clicking back button with dirty edits (EC-01)', async () => {
     const user = userEvent.setup();
     renderPage();
 
-    const subjectInput = screen.getByLabelText('Subject');
+    const subjectInput = screen.getByLabelText('Assunto');
     await user.type(subjectInput, ' changed');
 
-    await user.click(screen.getByRole('button', { name: /back to inbox/i }));
+    await user.click(screen.getByRole('button', { name: /voltar à caixa de entrada/i }));
 
-    expect(screen.getByRole('dialog', { name: /unsaved changes/i })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: /alterações por guardar/i })).toBeInTheDocument();
   });
 
   it('does not show the blocker dialog when navigating without dirty edits', async () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: /back to inbox/i }));
+    await user.click(screen.getByRole('button', { name: /voltar à caixa de entrada/i }));
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
@@ -269,11 +271,11 @@ describe('ClarificationView', () => {
     const user = userEvent.setup();
     renderPage();
 
-    const subjectInput = screen.getByLabelText('Subject');
+    const subjectInput = screen.getByLabelText('Assunto');
     await user.type(subjectInput, ' changed');
 
-    await user.click(screen.getByRole('button', { name: /cancel/i }));
-    await user.click(screen.getByRole('button', { name: /discard/i }));
+    await user.click(screen.getByRole('button', { name: /cancelar/i }));
+    await user.click(screen.getByRole('button', { name: /descartar/i }));
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
@@ -282,14 +284,14 @@ describe('ClarificationView', () => {
     const user = userEvent.setup();
     renderPage();
 
-    const subjectInput = screen.getByLabelText('Subject');
+    const subjectInput = screen.getByLabelText('Assunto');
     await user.type(subjectInput, ' changed');
 
-    await user.click(screen.getByRole('button', { name: /cancel/i }));
-    await user.click(screen.getByRole('button', { name: /stay/i }));
+    await user.click(screen.getByRole('button', { name: /cancelar/i }));
+    await user.click(screen.getByRole('button', { name: /ficar/i }));
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(screen.getByLabelText('Subject')).toHaveValue('Request for additional details changed');
+    expect(screen.getByLabelText('Assunto')).toHaveValue('Request for additional details changed');
   });
 
   it('shows a sent banner when the clarification has already been sent', () => {
@@ -299,7 +301,7 @@ describe('ClarificationView', () => {
       isError: false,
     });
     renderPage();
-    expect(screen.getByText(/this clarification has already been sent/i)).toBeInTheDocument();
+    expect(screen.getByText(/este esclarecimento já foi enviado/i)).toBeInTheDocument();
   });
 
   it('disables the Send button when the clarification is already sent', () => {
@@ -309,7 +311,7 @@ describe('ClarificationView', () => {
       isError: false,
     });
     renderPage();
-    expect(screen.getByRole('button', { name: /send clarification/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /enviar esclarecimento/i })).toBeDisabled();
   });
 
   it('disables the subject and body inputs when the clarification is already sent', () => {
@@ -319,17 +321,17 @@ describe('ClarificationView', () => {
       isError: false,
     });
     renderPage();
-    expect(screen.getByLabelText('Subject')).toBeDisabled();
-    expect(screen.getByLabelText('Body')).toBeDisabled();
+    expect(screen.getByLabelText('Assunto')).toBeDisabled();
+    expect(screen.getByLabelText('Mensagem')).toBeDisabled();
   });
 
   it('shows unsaved status in the header actions when edits are made', async () => {
     const user = userEvent.setup();
     renderPage();
 
-    const subjectInput = screen.getByLabelText('Subject');
+    const subjectInput = screen.getByLabelText('Assunto');
     await user.type(subjectInput, ' x');
 
-    expect(screen.getByText(/edited · unsaved/i)).toBeInTheDocument();
+    expect(screen.getByText(/editado · por guardar/i)).toBeInTheDocument();
   });
 });

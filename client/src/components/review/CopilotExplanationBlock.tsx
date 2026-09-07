@@ -21,8 +21,8 @@ export function CopilotExplanationBlock({
     return (
       <div className="border-t border-border pt-2">
         <div className="flex items-center gap-1.5">
-          <span className="text-sm font-medium text-slate-600">Why this needs review</span>
-          <Badge>AI explanation</Badge>
+          <span className="text-sm font-medium text-slate-600">Porque precisa de revisão</span>
+          <Badge>Explicação IA</Badge>
         </div>
         <div className="mt-2 h-4 w-3/4 animate-pulse rounded bg-canvas" />
       </div>
@@ -36,13 +36,13 @@ export function CopilotExplanationBlock({
     <Disclosure
       trigger={
         <>
-          <span className="text-sm font-medium text-slate-600">Why this needs review</span>
-          <Badge>AI explanation</Badge>
+          <span className="text-sm font-medium text-slate-600">Porque precisa de revisão</span>
+          <Badge>Explicação IA</Badge>
         </>
       }
       headerExtra={
         degraded && (
-          <span className="text-[11px] text-muted">Auto-generated, may be less precise</span>
+          <span className="text-[11px] text-muted">Gerada automaticamente; confirma os dados</span>
         )
       }
     >

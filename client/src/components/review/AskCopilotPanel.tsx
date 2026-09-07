@@ -33,14 +33,14 @@ export function AskCopilotPanel({ requestId }: AskCopilotPanelProps) {
       bodyClassName="max-h-96 overflow-y-auto"
       trigger={
         <>
-          <span className="text-sm font-medium text-slate-600">Ask Copilot</span>
-          <Badge>Agentic</Badge>
+          <span className="text-sm font-medium text-slate-600">Consultar assistente</span>
+          <Badge>IA</Badge>
         </>
       }
     >
       <div className="flex gap-2">
         <label htmlFor={inputId} className="sr-only">
-          Ask a question about this request
+          Fazer uma pergunta sobre este pedido
         </label>
         <input
           id={inputId}
@@ -52,7 +52,7 @@ export function AskCopilotPanel({ requestId }: AskCopilotPanelProps) {
             setQuestion(e.target.value);
             if (data || isError) reset();
           }}
-          placeholder="Why is this line item flagged?"
+          placeholder="Porque foi este dado assinalado?"
           className="flex-1 rounded border border-border px-3 py-1.5 text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-50"
         />
         <button
@@ -61,7 +61,7 @@ export function AskCopilotPanel({ requestId }: AskCopilotPanelProps) {
           disabled={!canSubmit}
           className="rounded bg-indigo-600 px-3 py-1.5 text-[13px] text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
         >
-          Ask
+          Perguntar
         </button>
       </div>
 

@@ -55,43 +55,43 @@ describe('DeclineModal', () => {
   it('renders heading and reason picker when open', () => {
     renderModal();
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText(/decline request/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/decline reason/i)).toBeInTheDocument();
+    expect(screen.getByText(/recusar pedido/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/motivo da recusa/i)).toBeInTheDocument();
   });
 
   it('Confirm is disabled before a reason is selected', () => {
     renderModal();
-    expect(screen.getByRole('button', { name: /confirm decline/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /confirmar recusa/i })).toBeDisabled();
   });
 
   it('shows custom reason input when Other is selected', async () => {
     const user = userEvent.setup();
     renderModal();
 
-    await user.selectOptions(screen.getByLabelText(/decline reason/i), 'Other');
+    await user.selectOptions(screen.getByLabelText(/motivo da recusa/i), 'Outro');
 
-    expect(screen.getByLabelText(/custom decline reason/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/outro motivo de recusa/i)).toBeInTheDocument();
   });
 
   it('Confirm stays disabled when Other is selected but custom text is empty', async () => {
     const user = userEvent.setup();
     renderModal();
 
-    await user.selectOptions(screen.getByLabelText(/decline reason/i), 'Other');
+    await user.selectOptions(screen.getByLabelText(/motivo da recusa/i), 'Outro');
 
-    expect(screen.getByRole('button', { name: /confirm decline/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /confirmar recusa/i })).toBeDisabled();
   });
 
   it('calls mutate with the selected reason and closes on success', async () => {
     const user = userEvent.setup();
     const { onClose } = renderModal();
 
-    await user.selectOptions(screen.getByLabelText(/decline reason/i), 'Not a relevant request');
-    await user.click(screen.getByRole('button', { name: /confirm decline/i }));
+    await user.selectOptions(screen.getByLabelText(/motivo da recusa/i), 'Pedido não relevante');
+    await user.click(screen.getByRole('button', { name: /confirmar recusa/i }));
 
     expect(mockMutate).toHaveBeenCalledWith({
       requestId: 'req-1',
-      reason: 'Not a relevant request',
+      reason: 'Pedido não relevante',
     });
 
     act(() => {
@@ -105,8 +105,8 @@ describe('DeclineModal', () => {
     const user = userEvent.setup();
     renderModal();
 
-    await user.selectOptions(screen.getByLabelText(/decline reason/i), 'Not a relevant request');
-    await user.click(screen.getByRole('button', { name: /confirm decline/i }));
+    await user.selectOptions(screen.getByLabelText(/motivo da recusa/i), 'Pedido não relevante');
+    await user.click(screen.getByRole('button', { name: /confirmar recusa/i }));
 
     act(() => {
       capturedCallbacks.current?.onError?.({
@@ -121,8 +121,8 @@ describe('DeclineModal', () => {
     const user = userEvent.setup();
     renderModal();
 
-    await user.selectOptions(screen.getByLabelText(/decline reason/i), 'Not a relevant request');
-    await user.click(screen.getByRole('button', { name: /confirm decline/i }));
+    await user.selectOptions(screen.getByLabelText(/motivo da recusa/i), 'Pedido não relevante');
+    await user.click(screen.getByRole('button', { name: /confirmar recusa/i }));
 
     act(() => {
       capturedCallbacks.current?.onError?.({
@@ -130,7 +130,7 @@ describe('DeclineModal', () => {
       } as AxiosError<{ message?: string }>);
     });
 
-    expect(screen.getByText(/failed to decline/i)).toBeInTheDocument();
+    expect(screen.getByText(/não foi possível recusar/i)).toBeInTheDocument();
   });
 
   it('Escape key calls onClose', async () => {
@@ -144,6 +144,6 @@ describe('DeclineModal', () => {
 
   it('focus moves into the dialog on open', () => {
     renderModal();
-    expect(screen.getByLabelText(/decline reason/i)).toHaveFocus();
+    expect(screen.getByLabelText(/motivo da recusa/i)).toHaveFocus();
   });
 });

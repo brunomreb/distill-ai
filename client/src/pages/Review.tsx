@@ -18,17 +18,17 @@ import { reasonsSummary } from '../lib/routing-reason';
 import { PRIMARY_ACTION_LABELS } from '../lib/actionLabels';
 
 const REQUEST_TYPE_LABELS: Record<string, string> = {
-  catalog_rfq: 'Catalog RFQ',
-  direct_order: 'Direct Order',
-  spot_quote: 'Spot Quote',
+  catalog_rfq: 'Pedido de orçamento',
+  direct_order: 'Encomenda direta',
+  spot_quote: 'Orçamento pontual',
 };
 
 const ROUTING_BADGE: Record<
   'auto_eligible' | 'needs_review',
   { badge: string; dot: string; label: string }
 > = {
-  needs_review: { badge: 'bg-md-bg text-md-tx', dot: 'bg-md-dot', label: 'Needs review' },
-  auto_eligible: { badge: 'bg-hi-bg text-hi-tx', dot: 'bg-hi-dot', label: 'Auto eligible' },
+  needs_review: { badge: 'bg-md-bg text-md-tx', dot: 'bg-md-dot', label: 'Revisão necessária' },
+  auto_eligible: { badge: 'bg-hi-bg text-hi-tx', dot: 'bg-hi-dot', label: 'Elegível' },
 };
 
 interface ConfidenceRoutingBadgeProps {
@@ -45,7 +45,7 @@ function ConfidenceRoutingBadge({ confidence, routing }: ConfidenceRoutingBadgeP
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${badge}`}
     >
       <span aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} />
-      Overall {pct}% · {label}
+      Confiança {pct}% · {label}
     </span>
   );
 }
@@ -92,17 +92,17 @@ export function Review() {
   }
 
   useEffect(() => {
-    const heading = request?.sender_company ?? request?.sender_contact ?? 'Request';
+    const heading = request?.sender_company ?? request?.sender_contact ?? 'Pedido';
     setTitle(
       <div className="flex min-w-0 items-center gap-3">
         <Link
           to="/"
           className="flex h-8 w-8 flex-none items-center justify-center rounded text-body-text hover:bg-canvas"
-          aria-label="Back to inbox"
+          aria-label="Voltar à caixa de entrada"
         >
           <ChevronLeftIcon />
         </Link>
-        <h1 className="truncate text-lg font-semibold text-slate-900">Review · {heading}</h1>
+        <h1 className="truncate text-lg font-semibold text-slate-900">Revisão · {heading}</h1>
       </div>,
     );
     return () => setTitle(null);
@@ -116,7 +116,7 @@ export function Review() {
 
     if (request.status === 'declined') {
       setActions(
-        <span className="text-sm font-medium text-rose-600">This request has been declined.</span>,
+        <span className="text-sm font-medium text-rose-600">Este pedido foi recusado.</span>,
       );
       return () => setActions(null);
     }
@@ -129,7 +129,7 @@ export function Review() {
           className="flex h-9 items-center gap-2 px-3 text-sm text-body-text hover:text-accent"
         >
           <QuestionMarkCircleIcon />
-          Clarification
+          Esclarecimento
         </button>
         <button
           ref={declineBtnRef}
@@ -139,7 +139,7 @@ export function Review() {
           aria-haspopup="dialog"
           className="h-9 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-slate-900 shadow-sm hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Decline
+          Recusar
         </button>
         <button
           type="button"
@@ -162,18 +162,21 @@ export function Review() {
     <div className="flex h-full flex-col px-6 py-6">
       {isLoading ? (
         <div className="rounded-card border border-border bg-surface px-4 py-12 text-center text-sm text-muted">
-          Loading request…
+          A carregar pedido…
         </div>
       ) : isError || !request ? (
         // EC-02: a failed fetch shows the error variant with a retry, never a blank workspace.
-        <ErrorBanner message="Could not load this request." onRetry={() => void refetch()} />
+        <ErrorBanner
+          message="Não foi possível carregar este pedido."
+          onRetry={() => void refetch()}
+        />
       ) : (
         <div className="flex min-h-0 flex-1 flex-col gap-4">
           {downloadError && <ErrorBanner message={downloadError} />}
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="font-semibold text-slate-900">
-              {request.sender_company ?? request.sender_contact ?? 'Unknown sender'}
+              {request.sender_company ?? request.sender_contact ?? 'Remetente desconhecido'}
             </span>
             {request.sender_company && request.sender_contact && (
               <>

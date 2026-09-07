@@ -10,7 +10,7 @@ describe('CopilotExplanationBlock', () => {
     const { container } = render(
       <CopilotExplanationBlock explanation={undefined} isLoading isError={false} />,
     );
-    expect(screen.getByText('Why this needs review')).toBeInTheDocument();
+    expect(screen.getByText('Porque precisa de revisão')).toBeInTheDocument();
     expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
@@ -31,7 +31,7 @@ describe('CopilotExplanationBlock', () => {
 
   it('renders the badge and explanation text when populated', () => {
     render(<CopilotExplanationBlock explanation={explanation} isLoading={false} isError={false} />);
-    expect(screen.getByText('AI explanation')).toBeInTheDocument();
+    expect(screen.getByText('Explicação IA')).toBeInTheDocument();
     expect(screen.getByText(explanation)).toBeInTheDocument();
   });
 
@@ -39,7 +39,7 @@ describe('CopilotExplanationBlock', () => {
     const user = userEvent.setup();
     render(<CopilotExplanationBlock explanation={explanation} isLoading={false} isError={false} />);
 
-    const btn = screen.getByRole('button', { name: /why this needs review/i });
+    const btn = screen.getByRole('button', { name: /porque precisa de revisão/i });
     expect(btn).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByText(explanation)).toBeVisible();
 
@@ -61,7 +61,7 @@ describe('CopilotExplanationBlock', () => {
         degraded
       />,
     );
-    expect(screen.getByText(/auto-generated, may be less precise/i)).toBeInTheDocument();
+    expect(screen.getByText(/gerada automaticamente; confirma os dados/i)).toBeInTheDocument();
   });
 
   it('does not show a degraded note for a normal LLM explanation', () => {
@@ -73,6 +73,8 @@ describe('CopilotExplanationBlock', () => {
         degraded={false}
       />,
     );
-    expect(screen.queryByText(/auto-generated, may be less precise/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/gerada automaticamente; confirma os dados/i),
+    ).not.toBeInTheDocument();
   });
 });

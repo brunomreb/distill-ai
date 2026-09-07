@@ -8,7 +8,7 @@ interface OriginalRequestPaneProps {
 
 /** Left pane of the Review workspace: the sender, the email body, and the original attachments. */
 export function OriginalRequestPane({ request, onError }: OriginalRequestPaneProps) {
-  const sender = request.sender_company ?? request.sender_contact ?? 'Unknown sender';
+  const sender = request.sender_company ?? request.sender_contact ?? 'Remetente desconhecido';
 
   return (
     <section aria-labelledby="original-request-heading" className="flex flex-col gap-4">
@@ -16,7 +16,7 @@ export function OriginalRequestPane({ request, onError }: OriginalRequestPanePro
         id="original-request-heading"
         className="text-xs font-semibold uppercase tracking-wide text-muted"
       >
-        Original request
+        Pedido original
       </h2>
 
       <div className="flex items-center gap-3">
@@ -25,7 +25,7 @@ export function OriginalRequestPane({ request, onError }: OriginalRequestPanePro
         </div>
         <div className="min-w-0">
           <div className="truncate text-sm font-medium text-body-text">{sender}</div>
-          <div className="truncate text-xs text-muted">{request.sender_email ?? 'No email'}</div>
+          <div className="truncate text-xs text-muted">{request.sender_email ?? 'Sem email'}</div>
         </div>
       </div>
 
@@ -34,14 +34,12 @@ export function OriginalRequestPane({ request, onError }: OriginalRequestPanePro
       )}
 
       <p className="whitespace-pre-wrap text-sm text-body-text">
-        {request.source_body ?? 'No message body.'}
+        {request.source_body ?? 'Sem mensagem.'}
       </p>
 
       {request.attachments.length > 0 && (
         <div className="flex flex-col gap-2">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted">
-            Attachments
-          </div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted">Anexos</div>
           {request.attachments.map((attachment) => (
             <OriginalAttachmentCard
               key={attachment.id}

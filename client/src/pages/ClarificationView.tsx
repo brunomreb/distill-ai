@@ -100,10 +100,10 @@ function BlockerDialog({
         className="mx-4 w-full max-w-sm rounded-card border border-border bg-surface p-6 shadow-lg"
       >
         <h2 id="unsaved-title" className="text-base font-semibold text-slate-900">
-          Unsaved changes
+          Alterações por guardar
         </h2>
         <p className="mt-2 text-sm text-muted">
-          You have unsaved edits in your clarification draft. Leaving now will discard them.
+          Há alterações por guardar no rascunho. Se saíres agora, serão perdidas.
         </p>
         <div className="mt-4 flex justify-end gap-2">
           <button
@@ -114,14 +114,14 @@ function BlockerDialog({
             }}
             className="h-9 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-slate-900 hover:bg-canvas"
           >
-            Stay
+            Ficar
           </button>
           <button
             type="button"
             onClick={onConfirm}
             className="h-9 rounded-lg bg-rose-600 px-4 text-sm font-medium text-white hover:bg-rose-700"
           >
-            Discard
+            Descartar
           </button>
         </div>
       </div>
@@ -173,18 +173,20 @@ export function ClarificationView() {
   );
 
   useEffect(() => {
-    const heading = request?.sender_company ?? request?.sender_contact ?? 'Request';
+    const heading = request?.sender_company ?? request?.sender_contact ?? 'Pedido';
     setTitle(
       <div className="flex min-w-0 items-center gap-3">
         <button
           type="button"
           onClick={() => handleNav('/')}
           className="flex h-8 w-8 flex-none items-center justify-center rounded text-body-text hover:bg-canvas"
-          aria-label="Back to inbox"
+          aria-label="Voltar à caixa de entrada"
         >
           <ChevronLeftIcon />
         </button>
-        <h1 className="truncate text-lg font-semibold text-slate-900">Clarification · {heading}</h1>
+        <h1 className="truncate text-lg font-semibold text-slate-900">
+          Esclarecimento · {heading}
+        </h1>
       </div>,
     );
     return () => setTitle(null);
@@ -193,10 +195,10 @@ export function ClarificationView() {
   useEffect(() => {
     setActions(
       sending ? (
-        <span className="text-sm text-muted">Sending…</span>
+        <span className="text-sm text-muted">A enviar…</span>
       ) : (
         <span className="text-sm text-muted">
-          {dirty ? 'Edited · unsaved' : clarification?.sent_at ? 'Sent' : 'Draft'}
+          {dirty ? 'Editado · por guardar' : clarification?.sent_at ? 'Enviado' : 'Rascunho'}
         </span>
       ),
     );
@@ -230,8 +232,8 @@ export function ClarificationView() {
       const msg =
         err && typeof err === 'object' && 'response' in err
           ? ((err as { response?: { data?: { message?: string } } }).response?.data?.message ??
-            'Failed to send clarification.')
-          : 'Failed to send clarification.';
+            'Não foi possível enviar o esclarecimento.')
+          : 'Não foi possível enviar o esclarecimento.';
       setSendError(msg);
     }
   }
@@ -240,7 +242,7 @@ export function ClarificationView() {
     return (
       <div className="px-6 py-6">
         <div className="rounded-card border border-border bg-surface px-4 py-12 text-center text-sm text-muted">
-          Loading clarification…
+          A carregar esclarecimento…
         </div>
       </div>
     );
@@ -250,7 +252,7 @@ export function ClarificationView() {
     return (
       <div className="px-6 py-6">
         <ErrorBanner
-          message="Could not load clarification for this request."
+          message="Não foi possível carregar o esclarecimento deste pedido."
           onRetry={() => void refetch()}
         />
       </div>
@@ -281,15 +283,15 @@ export function ClarificationView() {
 
       {isSent && (
         <div className="mb-4 rounded-card border border-hi-bg bg-hi-bg px-3 py-2 text-[13px] text-hi-tx">
-          This clarification has already been sent.
+          Este esclarecimento já foi enviado.
         </div>
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section>
-          <h2 className="mb-3 text-sm font-semibold text-slate-900">Detected gaps</h2>
+          <h2 className="mb-3 text-sm font-semibold text-slate-900">Informação em falta</h2>
           {gaps.length === 0 ? (
-            <p className="text-sm text-muted">No gaps detected.</p>
+            <p className="text-sm text-muted">Não foi detetada informação em falta.</p>
           ) : (
             <ul className="space-y-2">
               {gaps.map((gap, index) => (
@@ -300,11 +302,11 @@ export function ClarificationView() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-sm font-semibold text-slate-900">Draft</h2>
+          <h2 className="mb-3 text-sm font-semibold text-slate-900">Rascunho</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="clar-subject" className="mb-1 block text-xs font-medium text-muted">
-                Subject
+                Assunto
               </label>
               <input
                 id="clar-subject"
@@ -316,13 +318,13 @@ export function ClarificationView() {
                   setSendError('');
                 }}
                 disabled={isSent}
-                placeholder="Clarification subject"
+                placeholder="Assunto do esclarecimento"
                 className="h-9 w-full rounded-button border border-border bg-surface px-3 text-sm text-body-text placeholder:text-muted focus:border-accent focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
             <div>
               <label htmlFor="clar-body" className="mb-1 block text-xs font-medium text-muted">
-                Body
+                Mensagem
               </label>
               <textarea
                 id="clar-body"
@@ -333,7 +335,7 @@ export function ClarificationView() {
                   setSendError('');
                 }}
                 disabled={isSent}
-                placeholder="Clarification body"
+                placeholder="Mensagem de esclarecimento"
                 rows={10}
                 className="w-full resize-y rounded-button border border-border bg-surface px-3 py-2 text-sm text-body-text placeholder:text-muted focus:border-accent focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
@@ -348,7 +350,7 @@ export function ClarificationView() {
           onClick={() => handleNav(`/requests/${requestId}`)}
           className="h-9 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-slate-900 hover:bg-canvas"
         >
-          Cancel
+          Cancelar
         </button>
         <button
           type="button"
@@ -356,7 +358,7 @@ export function ClarificationView() {
           disabled={!canSend || isSent}
           className="flex h-9 items-center gap-2 rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Send clarification
+          Enviar esclarecimento
         </button>
       </div>
     </div>

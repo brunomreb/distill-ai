@@ -131,7 +131,7 @@ describe('QuoteOutput', () => {
     mockUseClipboardCopy.mockReturnValue({ status: 'idle', copy: mockCopy });
   });
 
-  it('pre-approval: shows the draft preview with Download PDF disabled and Approve & ready active', () => {
+  it('pre-approval: shows the draft preview with PDF disabled and approval active', () => {
     mockUseRequest.mockReturnValue({
       data: requestFixture,
       isLoading: false,
@@ -141,13 +141,13 @@ describe('QuoteOutput', () => {
 
     renderQuoteOutput();
 
-    expect(screen.getByRole('button', { name: /download pdf/i })).toBeDisabled();
-    const approveButton = screen.getByRole('button', { name: /approve & ready/i });
+    expect(screen.getByRole('button', { name: /descarregar pdf/i })).toBeDisabled();
+    const approveButton = screen.getByRole('button', { name: /aprovar orçamento/i });
     expect(approveButton).toBeEnabled();
     expect(approveButton.textContent?.toLowerCase()).not.toMatch(/send/);
   });
 
-  it('calls approveQuote.mutate when Approve & ready is clicked', async () => {
+  it('calls approveQuote.mutate when approval is clicked', async () => {
     const user = userEvent.setup();
     mockUseRequest.mockReturnValue({
       data: requestFixture,
@@ -157,7 +157,7 @@ describe('QuoteOutput', () => {
     });
 
     renderQuoteOutput();
-    await user.click(screen.getByRole('button', { name: /approve & ready/i }));
+    await user.click(screen.getByRole('button', { name: /aprovar orçamento/i }));
 
     expect(mockApproveMutate).toHaveBeenCalled();
   });
@@ -181,12 +181,12 @@ describe('QuoteOutput', () => {
 
     renderQuoteOutput();
 
-    expect(screen.getByRole('button', { name: /download pdf/i })).toBeEnabled();
-    expect(screen.queryByRole('button', { name: /approve & ready/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/this quote has been approved/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /descarregar pdf/i })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: /aprovar orçamento/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/este orçamento foi aprovado/i)).toBeInTheDocument();
   });
 
-  it('fires the PDF fetch when Download PDF is clicked in the ready state', async () => {
+  it('fires the PDF fetch when the PDF button is clicked in the ready state', async () => {
     const user = userEvent.setup();
     const readyRequest: RequestDetail = {
       ...requestFixture,
@@ -204,7 +204,7 @@ describe('QuoteOutput', () => {
     const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
     renderQuoteOutput();
-    await user.click(screen.getByRole('button', { name: /download pdf/i }));
+    await user.click(screen.getByRole('button', { name: /descarregar pdf/i }));
 
     expect(mockDownloadQuotePdf).toHaveBeenCalledWith('req-1');
     clickSpy.mockRestore();
@@ -246,7 +246,7 @@ describe('QuoteOutput', () => {
     renderQuoteOutput();
 
     expect(
-      screen.getByText(/could not generate the quote pdf\. please try again\./i),
+      screen.getByText(/não foi possível gerar o pdf\. tenta novamente\./i),
     ).toBeInTheDocument();
   });
 
@@ -260,7 +260,7 @@ describe('QuoteOutput', () => {
 
     renderQuoteOutput();
 
-    expect(screen.getByLabelText('Subject')).toHaveValue('Your quote Q-2041 from Distill.ai');
+    expect(screen.getByLabelText('Assunto')).toHaveValue('Orçamento Q-2041 — Stratos');
   });
 
   it('renders the server-provided email draft when present', () => {
@@ -280,13 +280,13 @@ describe('QuoteOutput', () => {
 
     renderQuoteOutput();
 
-    expect(screen.getByLabelText('Subject')).toHaveValue('Your quote from Distill.ai');
-    expect(screen.getByLabelText('Message')).toHaveValue(
+    expect(screen.getByLabelText('Assunto')).toHaveValue('Your quote from Distill.ai');
+    expect(screen.getByLabelText('Mensagem')).toHaveValue(
       'Hi James, please find your quote attached.',
     );
   });
 
-  it('copies the combined subject and body when Copy to Clipboard is clicked', async () => {
+  it('copies the combined subject and body when copy is clicked', async () => {
     const user = userEvent.setup();
     mockUseRequest.mockReturnValue({
       data: requestFixture,
@@ -296,10 +296,10 @@ describe('QuoteOutput', () => {
     });
 
     renderQuoteOutput();
-    await user.click(screen.getByRole('button', { name: /copy to clipboard/i }));
+    await user.click(screen.getByRole('button', { name: /^copiar$/i }));
 
     expect(mockCopy).toHaveBeenCalledWith(
-      'Your quote Q-2041 from Distill.ai\n\nHi,\n\nPlease find attached your quote Q-2041. The total is GBP 4,120.00. The estimated lead time is 7 business days.\n\nBest regards,\nDistill.ai',
+      'Orçamento Q-2041 — Stratos\n\nOlá,\n\nSegue em anexo o orçamento Q-2041, no valor total de 4120,00 GBP. O prazo estimado é de 7 dias úteis.\n\nCom os melhores cumprimentos,\nStratos',
       expect.anything(),
     );
   });

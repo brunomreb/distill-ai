@@ -15,6 +15,15 @@ export class PricingRule extends BaseEntity {
   @Column({ type: 'enum', enum: PricingRuleType, enumName: 'pricing_rule_type' })
   rule_type: PricingRuleType;
 
+  @Column({ type: 'text', nullable: true })
+  vertical: 'avac' | 'caixilharia' | null;
+
+  @Column({ type: 'text', nullable: true })
+  rule_key: string | null;
+
+  @Column({ type: 'int', default: 0 })
+  sort_order: number;
+
   @Column({ type: 'jsonb' })
   config: Record<string, unknown>;
 

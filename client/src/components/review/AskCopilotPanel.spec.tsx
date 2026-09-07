@@ -44,9 +44,9 @@ describe('AskCopilotPanel', () => {
   it('renders collapsed by default with the Ask Copilot trigger and Agentic badge', () => {
     render(<AskCopilotPanel requestId="req-1" />);
 
-    expect(screen.getByText('Ask Copilot')).toBeInTheDocument();
-    expect(screen.getByText('Agentic')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /ask copilot/i })).toHaveAttribute(
+    expect(screen.getByText('Consultar assistente')).toBeInTheDocument();
+    expect(screen.getByText('IA')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /consultar assistente/i })).toHaveAttribute(
       'aria-expanded',
       'false',
     );
@@ -55,25 +55,25 @@ describe('AskCopilotPanel', () => {
   it('keeps the Ask button disabled until a question is typed', async () => {
     const user = userEvent.setup();
     render(<AskCopilotPanel requestId="req-1" />);
-    await user.click(screen.getByRole('button', { name: /ask copilot/i }));
+    await user.click(screen.getByRole('button', { name: /consultar assistente/i }));
 
-    const askButton = screen.getByRole('button', { name: 'Ask' });
+    const askButton = screen.getByRole('button', { name: 'Perguntar' });
     expect(askButton).toBeDisabled();
 
-    await user.type(screen.getByPlaceholderText(/why is this line item flagged/i), 'why?');
+    await user.type(screen.getByPlaceholderText(/porque foi este dado assinalado/i), 'why?');
     expect(askButton).toBeEnabled();
   });
 
   it('calls mutate with the typed question on submit', async () => {
     const user = userEvent.setup();
     render(<AskCopilotPanel requestId="req-1" />);
-    await user.click(screen.getByRole('button', { name: /ask copilot/i }));
+    await user.click(screen.getByRole('button', { name: /consultar assistente/i }));
 
     await user.type(
-      screen.getByPlaceholderText(/why is this line item flagged/i),
+      screen.getByPlaceholderText(/porque foi este dado assinalado/i),
       'why is this flagged?',
     );
-    await user.click(screen.getByRole('button', { name: 'Ask' }));
+    await user.click(screen.getByRole('button', { name: 'Perguntar' }));
 
     expect(mockMutate).toHaveBeenCalledWith('why is this flagged?');
   });
@@ -82,10 +82,10 @@ describe('AskCopilotPanel', () => {
     state.isPending = true;
     const user = userEvent.setup();
     const { container } = render(<AskCopilotPanel requestId="req-1" />);
-    await user.click(screen.getByRole('button', { name: /ask copilot/i }));
+    await user.click(screen.getByRole('button', { name: /consultar assistente/i }));
 
-    expect(screen.getByPlaceholderText(/why is this line item flagged/i)).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Ask' })).toBeDisabled();
+    expect(screen.getByPlaceholderText(/porque foi este dado assinalado/i)).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Perguntar' })).toBeDisabled();
     expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
   });
 
@@ -104,7 +104,7 @@ describe('AskCopilotPanel', () => {
     };
     const user = userEvent.setup();
     render(<AskCopilotPanel requestId="req-1" />);
-    await user.click(screen.getByRole('button', { name: /ask copilot/i }));
+    await user.click(screen.getByRole('button', { name: /consultar assistente/i }));
 
     expect(
       screen.getByText('This needs review because confidence is below threshold.'),
@@ -121,9 +121,9 @@ describe('AskCopilotPanel', () => {
     };
     const user = userEvent.setup();
     render(<AskCopilotPanel requestId="req-1" />);
-    await user.click(screen.getByRole('button', { name: /ask copilot/i }));
+    await user.click(screen.getByRole('button', { name: /consultar assistente/i }));
 
-    await user.type(screen.getByPlaceholderText(/why is this line item flagged/i), 'x');
+    await user.type(screen.getByPlaceholderText(/porque foi este dado assinalado/i), 'x');
 
     expect(mockReset).toHaveBeenCalled();
   });
@@ -133,9 +133,9 @@ describe('AskCopilotPanel', () => {
     state.error = { response: { data: { message: 'boom' } } } as AxiosError<{ message?: string }>;
     const user = userEvent.setup();
     render(<AskCopilotPanel requestId="req-1" />);
-    await user.click(screen.getByRole('button', { name: /ask copilot/i }));
+    await user.click(screen.getByRole('button', { name: /consultar assistente/i }));
 
-    await user.type(screen.getByPlaceholderText(/why is this line item flagged/i), 'x');
+    await user.type(screen.getByPlaceholderText(/porque foi este dado assinalado/i), 'x');
 
     expect(mockReset).toHaveBeenCalled();
   });
@@ -147,7 +147,7 @@ describe('AskCopilotPanel', () => {
     } as AxiosError<{ message?: string }>;
     const user = userEvent.setup();
     render(<AskCopilotPanel requestId="req-1" />);
-    await user.click(screen.getByRole('button', { name: /ask copilot/i }));
+    await user.click(screen.getByRole('button', { name: /consultar assistente/i }));
 
     expect(screen.getByText('Copilot Q&A is not enabled for this environment')).toBeInTheDocument();
   });
@@ -157,7 +157,7 @@ describe('AskCopilotPanel', () => {
     state.error = { response: undefined } as AxiosError<{ message?: string }>;
     const user = userEvent.setup();
     render(<AskCopilotPanel requestId="req-1" />);
-    await user.click(screen.getByRole('button', { name: /ask copilot/i }));
+    await user.click(screen.getByRole('button', { name: /consultar assistente/i }));
 
     expect(screen.getByText(GENERIC_ERROR)).toBeInTheDocument();
   });

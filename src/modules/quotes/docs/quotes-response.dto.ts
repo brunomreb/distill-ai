@@ -20,6 +20,12 @@ export class QuoteLineDetailResponseDto {
 
   @ApiProperty({ example: 95000, description: 'Minor units' })
   amount_minor: number;
+
+  @ApiProperty({
+    enum: ['equipment', 'material', 'labor', 'consumable', 'margin', 'tax'],
+    example: 'equipment',
+  })
+  kind: 'equipment' | 'material' | 'labor' | 'consumable' | 'margin' | 'tax';
 }
 
 /** Swagger schema for the quote detail shared by GET /requests/:id and POST /requests/:id/quote. */

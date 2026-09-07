@@ -3,15 +3,15 @@ import { RequestStatusBadge } from './RequestStatusBadge';
 import type { RequestStatus } from '../../api/interface/request-status';
 
 const cases: { status: RequestStatus; label: string }[] = [
-  { status: 'received', label: 'Received' },
-  { status: 'parsing', label: 'Parsing' },
-  { status: 'needs_review', label: 'Needs review' },
-  { status: 'priced', label: 'Priced' },
-  { status: 'ready', label: 'Ready' },
-  { status: 'sent', label: 'Sent' },
-  { status: 'declined', label: 'Declined' },
-  { status: 'needs_clarification', label: 'Needs clarification' },
-  { status: 'failed', label: 'Failed' },
+  { status: 'received', label: 'Recebido' },
+  { status: 'parsing', label: 'Em processamento' },
+  { status: 'needs_review', label: 'A rever' },
+  { status: 'priced', label: 'Calculado' },
+  { status: 'ready', label: 'Pronto' },
+  { status: 'sent', label: 'Enviado' },
+  { status: 'declined', label: 'Recusado' },
+  { status: 'needs_clarification', label: 'A esclarecer' },
+  { status: 'failed', label: 'Falhou' },
 ];
 
 describe('RequestStatusBadge', () => {

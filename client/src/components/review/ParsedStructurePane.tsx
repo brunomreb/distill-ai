@@ -36,12 +36,13 @@ export function ParsedStructurePane({ requestId, lines }: ParsedStructurePanePro
         id="parsed-structure-heading"
         className="text-xs font-semibold uppercase tracking-wide text-muted"
       >
-        Parsed structure
+        Dados extraídos
       </h2>
 
       {lines.length === 0 ? (
         <div className="flex flex-1 items-center justify-center rounded-card border border-dashed border-border py-10 text-sm text-muted">
-          No line items parsed yet.
+          Os dados AVAC extraídos estão disponíveis no pedido original; as linhas são calculadas
+          pelo motor determinístico.
         </div>
       ) : (
         <ul className="flex flex-col gap-2">
@@ -61,7 +62,7 @@ export function ParsedStructurePane({ requestId, lines }: ParsedStructurePanePro
                         {line.matched_sku.name}
                       </>
                     ) : (
-                      <span className="italic">No catalog match</span>
+                      <span className="italic">Sem correspondência no catálogo</span>
                     )}
                   </p>
                 </div>
@@ -72,7 +73,7 @@ export function ParsedStructurePane({ requestId, lines }: ParsedStructurePanePro
                   the Suggested Quote pane, so it is not rendered here as a raw minor-unit number. */}
               <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
                 <span>
-                  Qty <span className="font-medium text-body-text">{line.quantity ?? '—'}</span>
+                  Qtd. <span className="font-medium text-body-text">{line.quantity ?? '—'}</span>
                 </span>
                 {line.flags.length > 0 && (
                   <span className="flex flex-wrap items-center gap-1">
@@ -86,7 +87,7 @@ export function ParsedStructurePane({ requestId, lines }: ParsedStructurePanePro
                   onClick={() => setRemapLine(line)}
                   className="ml-auto rounded border border-border px-2 py-0.5 text-xs font-medium text-accent hover:bg-surface"
                 >
-                  Re-map
+                  Alterar correspondência
                 </button>
               </div>
             </li>

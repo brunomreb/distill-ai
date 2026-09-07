@@ -28,9 +28,9 @@ export function ProcessingTrace({
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-lg bg-slate-900 overflow-hidden flex flex-col">
+        <div className="rounded-lg bg-[#020203] overflow-hidden flex flex-col">
           {resumed && (
-            <div className="bg-slate-800 border-l-[3px] border-accent px-4 py-3 flex items-center gap-3">
+            <div className="bg-[#17191f] border-l-[3px] border-accent px-4 py-3 flex items-center gap-3">
               <RotateCw className="h-3.5 w-3.5 text-banner-text" aria-hidden="true" />
               <span className="font-mono text-xs text-banner-text">
                 {`Resumed from ${resumed.from} after interruption`}

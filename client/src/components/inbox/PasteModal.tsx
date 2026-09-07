@@ -96,7 +96,7 @@ export function PasteModal({
       aria-modal="true"
       aria-labelledby={titleId}
       id={dialogId}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
       onKeyDown={(e) => {
         if (e.key !== 'Tab') return;
         const focusable = Array.from(e.currentTarget.querySelectorAll<HTMLElement>(FOCUSABLE));

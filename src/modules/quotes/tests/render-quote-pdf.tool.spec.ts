@@ -34,6 +34,7 @@ function setup() {
       quantity: 1,
       unit_price_minor: 1000,
       amount_minor: 1000,
+      kind: 'equipment',
     },
   ];
   const request = {
@@ -56,11 +57,14 @@ function setup() {
   };
   const objectStore = {
     put: vi.fn().mockResolvedValue(STORAGE_URL),
+    get: vi.fn(),
   };
+  const branding = { findOne: vi.fn().mockResolvedValue(null) };
 
   const factory = new RenderQuotePdfToolFactory(
     quotes as never,
     requests as never,
+    branding as never,
     renderer as never,
     objectStore as never,
   );
@@ -94,6 +98,7 @@ describe('RenderQuotePdfToolFactory', () => {
             quantity: 1,
             unitPriceMinor: 1000,
             amountMinor: 1000,
+            kind: 'equipment',
           },
         ],
         terms: 'Net 30',

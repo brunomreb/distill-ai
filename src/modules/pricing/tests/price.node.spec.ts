@@ -85,6 +85,7 @@ function setup(lines: FakeLine[], ruleSet: PricingRuleSet = RULES) {
 
   const node = new PriceNode(
     registry,
+    { findByRequestId: vi.fn().mockResolvedValue(null) } as never,
     lineItems as never,
     pricingRules,
     new QuotePricingService(),

@@ -156,7 +156,7 @@ export function RemapDrawer({ requestId, lineId, lineLabel, onClose }: RemapDraw
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end">
-      <div className="absolute inset-0 bg-slate-900/30" aria-hidden="true" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/70" aria-hidden="true" onClick={onClose} />
       <aside
         ref={drawerRef}
         tabIndex={-1}

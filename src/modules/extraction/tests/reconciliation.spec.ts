@@ -97,6 +97,34 @@ describe('reconcile', () => {
     const parsed = ExtractionV1Schema.parse(validExtraction);
     expect(parsed.sender_address).toBeNull();
   });
+
+  it('rejects an AVAC dimension that does not occur in the source text', () => {
+    const parsed = ExtractionV1Schema.parse({
+      vertical: 'avac',
+      customer: { name: null, email: null, phone: null, address: null },
+      avac: {
+        system_type: null,
+        brand_preference: null,
+        areas: [{ room: 'sala', area_m2: 35 }],
+        indoor_units_requested: null,
+        pipe_length_m: null,
+        install_height_m: null,
+        wall_type: null,
+        outdoor_unit_distance_m: null,
+        needs_electrical_panel: null,
+        distance_km: null,
+        install_type: null,
+        notes: '',
+      },
+      missing_info: [],
+      confidence: 'low',
+    });
+
+    expect(reconcile(parsed, 'Preciso de climatizar a sala.')).toEqual({
+      ok: false,
+      reason: 'Área extraída sem suporte no pedido: 35 m²',
+    });
+  });
 });
 
 describe('ExtractNode bounded loop', () => {

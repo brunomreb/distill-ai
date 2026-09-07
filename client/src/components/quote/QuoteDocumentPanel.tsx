@@ -1,4 +1,3 @@
-import { DistillMark } from '../shell/DistillMark';
 import { formatMoney } from '../../lib/formatMoney';
 import type { QuoteDetail } from '../../api/requests';
 
@@ -10,7 +9,7 @@ interface QuoteDocumentPanelProps {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-US', {
+  return new Date(iso).toLocaleDateString('pt-PT', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -32,18 +31,18 @@ export function QuoteDocumentPanel({
       <div className="flex-1 p-6">
         <div className="flex items-start justify-between gap-4 border-b border-border pb-4">
           <div className="flex items-center gap-2">
-            <DistillMark size={24} color="#4F46E5" />
-            <span className="text-base font-semibold text-slate-900">Distill.ai</span>
+            <span className="h-7 w-1 rounded-full bg-accent" aria-hidden="true" />
+            <span className="text-base font-extrabold text-slate-900">Motor de Orçamentos</span>
           </div>
           <div className="text-right">
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-900">
-              Quote {quote.quote_number}
+              Orçamento {quote.quote_number}
             </p>
             {/* Quotes don't carry their own created-at timestamp in this read model; only the PDF
                 generation time is known, and only once approved. */}
             {quote.pdf_generated_at && (
               <p className="mt-0.5 text-xs text-muted">
-                Generated {formatDate(quote.pdf_generated_at)}
+                Gerado em {formatDate(quote.pdf_generated_at)}
               </p>
             )}
           </div>
@@ -51,7 +50,7 @@ export function QuoteDocumentPanel({
 
         {(senderCompany || senderContact || senderEmail) && (
           <div className="mt-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted">Bill To</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">Cliente</p>
             <div className="mt-1 text-sm text-body-text">
               {senderCompany && <p className="font-medium text-slate-900">{senderCompany}</p>}
               {senderContact && <p>{senderContact}</p>}
@@ -64,51 +63,64 @@ export function QuoteDocumentPanel({
           <thead>
             <tr className="border-b border-border text-left text-xs font-semibold uppercase tracking-wide text-muted">
               <th scope="col" className="pb-2">
-                Item Description
+                Descrição
               </th>
               <th scope="col" className="pb-2 text-right">
-                Qty
+                Qtd.
               </th>
               <th scope="col" className="pb-2 text-right">
-                Unit Price
+                Preço unit.
               </th>
               <th scope="col" className="pb-2 text-right">
-                Amount
+                Total
               </th>
             </tr>
           </thead>
           <tbody>
-            {quote.lines.map((line) => (
-              <tr key={line.position} className="border-b border-border/60">
-                <td className="py-2 pr-2 text-body-text">{line.description}</td>
-                <td className="py-2 text-right text-body-text">{line.quantity}</td>
-                <td className="py-2 text-right text-body-text">
-                  {formatMoney(line.unit_price_minor, quote.currency)}
-                </td>
-                <td className="py-2 text-right font-medium text-slate-900">
-                  {formatMoney(line.amount_minor, quote.currency)}
-                </td>
-              </tr>
-            ))}
+            {quote.lines
+              .filter((line) => line.kind !== 'tax')
+              .map((line) => (
+                <tr key={line.position} className="border-b border-border/60">
+                  <td className="py-2 pr-2 text-body-text">{line.description}</td>
+                  <td className="py-2 text-right text-body-text">{line.quantity}</td>
+                  <td className="py-2 text-right text-body-text">
+                    {formatMoney(line.unit_price_minor, quote.currency)}
+                  </td>
+                  <td className="py-2 text-right font-medium text-slate-900">
+                    {formatMoney(line.amount_minor, quote.currency)}
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
 
         {quote.lead_time_days !== null && (
           <p className="mt-4 text-xs text-muted">
-            Lead time: {quote.lead_time_days} business days.
+            Prazo estimado: {quote.lead_time_days} dias úteis.
           </p>
         )}
       </div>
 
       <dl className="sticky bottom-0 border-t border-border bg-surface p-4 text-sm">
         <div className="flex justify-between py-0.5 text-muted">
-          <dt>Subtotal</dt>
+          <dt>Subtotal (sem IVA)</dt>
           <dd>{formatMoney(quote.subtotal_minor, quote.currency)}</dd>
         </div>
         {quote.discount_minor > 0 && (
           <div className="flex justify-between py-0.5 text-muted">
-            <dt>Discount</dt>
+            <dt>Desconto</dt>
             <dd>-{formatMoney(quote.discount_minor, quote.currency)}</dd>
+          </div>
+        )}
+        {quote.lines.find((line) => line.kind === 'tax') && (
+          <div className="flex justify-between py-0.5 text-muted">
+            <dt>{quote.lines.find((line) => line.kind === 'tax')?.description}</dt>
+            <dd>
+              {formatMoney(
+                quote.lines.find((line) => line.kind === 'tax')!.amount_minor,
+                quote.currency,
+              )}
+            </dd>
           </div>
         )}
         <div className="mt-1 flex justify-between border-t border-border pt-2 font-semibold text-slate-900">

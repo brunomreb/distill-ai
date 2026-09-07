@@ -43,7 +43,7 @@ export function Inbox() {
   const { data, isLoading, isError } = useRequests();
 
   useEffect(() => {
-    setTitle(<h1 className="truncate text-lg font-semibold text-slate-900">Inbox</h1>);
+    setTitle(<h1 className="truncate text-lg font-extrabold text-slate-900">Pedidos</h1>);
     setActions(
       <div className="flex items-center gap-2">
         <button
@@ -51,9 +51,10 @@ export function Inbox() {
           type="button"
           onClick={() => setModalOpen(true)}
           aria-haspopup="dialog"
+          aria-label="+ New request"
           className="flex h-9 items-center gap-2 rounded-button bg-indigo-600 px-4 text-sm font-medium text-white hover:bg-indigo-700"
         >
-          + New request
+          + Novo orçamento
         </button>
         <button
           type="button"
@@ -95,7 +96,7 @@ export function Inbox() {
           type="search"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search requests"
+          placeholder="Pesquisar pedidos"
           aria-label="Search requests"
           className="h-9 w-full max-w-sm rounded-button border border-border bg-surface px-3 text-sm text-body-text placeholder:text-muted focus:border-accent focus:outline-none"
         />

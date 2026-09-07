@@ -20,7 +20,7 @@ interface RequestRowProps {
 export function RequestRow({ request }: RequestRowProps) {
   const navigate = useNavigate();
   const to = `/requests/${request.id}`;
-  const company = request.sender_company ?? 'Unknown company';
+  const company = request.sender_company ?? 'Empresa desconhecida';
   const requestType = isRequestType(request.request_type) ? request.request_type : 'unknown';
 
   return (
@@ -33,7 +33,7 @@ export function RequestRow({ request }: RequestRowProps) {
         }
       }}
       tabIndex={0}
-      aria-label={`Open request from ${company}, status ${requestStatusLabels[request.status]}`}
+      aria-label={`Abrir pedido de ${company}, estado ${requestStatusLabels[request.status]}`}
       className="cursor-pointer border-b border-border last:border-0 hover:bg-canvas focus:outline-none focus-visible:bg-canvas"
     >
       <td className="px-4 py-3">

@@ -10,6 +10,7 @@ export interface DemoFixture {
   requestType: string | null;
   extractedFields: Record<string, unknown>;
   lineItemTexts: string[];
+  matchTerms: string[];
 }
 
 const CLEAN_FIXTURE_ID = 'rfq_01_catalog_clean';
@@ -44,6 +45,9 @@ export function loadDemoFixtures(): DemoFixture[] {
           lineItemTexts: items
             .map((entry) => String((entry as Record<string, unknown>)?.raw_text ?? ''))
             .filter((text) => text.length > 0),
+          matchTerms: Array.isArray(meta.match_terms)
+            ? meta.match_terms.filter((term): term is string => typeof term === 'string')
+            : [],
         });
       } catch {
         // Skip an unparseable fixture rather than failing the whole demo path.
@@ -67,7 +71,7 @@ export function matchDemoFixture(text: string): DemoFixture | null {
   let best = fixtures[0];
   let bestScore = -1;
   for (const fixture of fixtures) {
-    const score = fixture.lineItemTexts.reduce<number>(
+    const score = [...fixture.lineItemTexts, ...fixture.matchTerms].reduce<number>(
       (count, raw) => count + (haystack.includes(raw.toLowerCase()) ? 1 : 0),
       0,
     );

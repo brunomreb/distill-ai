@@ -43,7 +43,7 @@ export function EmailDraftPanel({
       {to !== undefined && (
         <div className="flex flex-col gap-1">
           <label htmlFor={toId} className="text-xs font-medium text-muted">
-            To
+            Para
           </label>
           <input
             id={toId}
@@ -57,7 +57,7 @@ export function EmailDraftPanel({
 
       <div className="flex flex-col gap-1">
         <label htmlFor={subjectId} className="text-xs font-medium text-muted">
-          Subject
+          Assunto
         </label>
         <input
           id={subjectId}
@@ -71,7 +71,7 @@ export function EmailDraftPanel({
 
       <div className="flex flex-col gap-1">
         <label htmlFor={bodyId} className="text-xs font-medium text-muted">
-          Message
+          Mensagem
         </label>
         <textarea
           id={bodyId}

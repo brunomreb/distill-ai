@@ -30,6 +30,21 @@ function makeTool() {
 }
 
 describe('ExtractRequestToolFactory (DEMO_MODE fixture fallback)', () => {
+  it('replays the AVAC fixture without provider calls or price fields', async () => {
+    const { contract, llm } = makeTool();
+    const result = await contract.execute({
+      text: 'Casa na Câmara de Lobos. Prefiro Daikin. A tubagem deve dar uns 6 metros.',
+      priorFailure: null,
+    });
+
+    expect(llm.invoke).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      vertical: 'avac',
+      avac: { brand_preference: 'Daikin', pipe_length_m: 6 },
+    });
+    expect(JSON.stringify(result)).not.toMatch(/price|discount|margin/i);
+  });
+
   it('extracts from the seed fixture without calling the LLM', async () => {
     const { contract, llm } = makeTool();
 

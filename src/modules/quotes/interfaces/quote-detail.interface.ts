@@ -8,6 +8,7 @@ export interface QuoteLineDetail {
   quantity: number;
   unit_price_minor: number;
   amount_minor: number;
+  kind: 'equipment' | 'material' | 'labor' | 'consumable' | 'margin' | 'tax';
 }
 
 /**

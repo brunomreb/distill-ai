@@ -11,7 +11,7 @@ describe('EmailDraftPanel', () => {
         trailingActions={<button>Send</button>}
       />,
     );
-    expect(screen.queryByLabelText('To')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Para')).not.toBeInTheDocument();
   });
 
   it('renders the To field as read-only when provided', () => {
@@ -23,7 +23,7 @@ describe('EmailDraftPanel', () => {
         trailingActions={<button>Send</button>}
       />,
     );
-    const toField = screen.getByLabelText('To');
+    const toField = screen.getByLabelText('Para');
     expect(toField).toHaveValue('dana@apex.example');
     expect(toField).toHaveAttribute('readOnly');
   });
@@ -36,8 +36,8 @@ describe('EmailDraftPanel', () => {
         trailingActions={<button>Send</button>}
       />,
     );
-    expect(screen.getByLabelText('Subject')).toHaveValue('Quick questions on your request');
-    expect(screen.getByLabelText('Message')).toHaveValue('Hi Vertex Logistics team,');
+    expect(screen.getByLabelText('Assunto')).toHaveValue('Quick questions on your request');
+    expect(screen.getByLabelText('Mensagem')).toHaveValue('Hi Vertex Logistics team,');
   });
 
   it('calls onSubjectChange and onBodyChange as the user types, when editable', async () => {
@@ -54,8 +54,8 @@ describe('EmailDraftPanel', () => {
       />,
     );
 
-    await user.type(screen.getByLabelText('Subject'), '!');
-    await user.type(screen.getByLabelText('Message'), '!');
+    await user.type(screen.getByLabelText('Assunto'), '!');
+    await user.type(screen.getByLabelText('Mensagem'), '!');
 
     expect(onSubjectChange).toHaveBeenCalled();
     expect(onBodyChange).toHaveBeenCalled();
@@ -66,8 +66,8 @@ describe('EmailDraftPanel', () => {
       <EmailDraftPanel subject="Subject" body="Body" trailingActions={<button>Send</button>} />,
     );
 
-    expect(screen.getByLabelText('Subject')).toHaveAttribute('readOnly');
-    expect(screen.getByLabelText('Message')).toHaveAttribute('readOnly');
+    expect(screen.getByLabelText('Assunto')).toHaveAttribute('readOnly');
+    expect(screen.getByLabelText('Mensagem')).toHaveAttribute('readOnly');
   });
 
   it('marks subject and body read-only when readOnly is true', () => {
@@ -80,8 +80,8 @@ describe('EmailDraftPanel', () => {
       />,
     );
 
-    expect(screen.getByLabelText('Subject')).toHaveAttribute('readOnly');
-    expect(screen.getByLabelText('Message')).toHaveAttribute('readOnly');
+    expect(screen.getByLabelText('Assunto')).toHaveAttribute('readOnly');
+    expect(screen.getByLabelText('Mensagem')).toHaveAttribute('readOnly');
   });
 
   it('renders the trailing actions slot', () => {
@@ -108,6 +108,6 @@ describe('EmailDraftPanel', () => {
       />,
     );
 
-    expect(bodyRef.current).toBe(screen.getByLabelText('Message'));
+    expect(bodyRef.current).toBe(screen.getByLabelText('Mensagem'));
   });
 });

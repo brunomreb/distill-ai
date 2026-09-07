@@ -19,7 +19,11 @@ import { ExtractionStatus } from './enums/extraction-status.enum';
 import { extractionModelName } from './tools/extract-request.tool';
 import { reconcile } from './reconcile';
 import type { ExtractionV1 } from './schemas/extraction-v1.schema';
-import { ExtractionV1Schema, formatSchemaError } from './schemas/extraction-v1.schema';
+import {
+  ExtractionV1Schema,
+  formatSchemaError,
+  isAvacExtraction,
+} from './schemas/extraction-v1.schema';
 
 @Injectable()
 export class ExtractNode implements PipelineNode {
@@ -184,23 +188,29 @@ export class ExtractNode implements PipelineNode {
 
       await this.lineItems.replaceForRequest(
         requestId,
-        extracted.line_items.map((item) => ({
-          position: item.position,
-          raw_text: item.raw_text,
-          quantity: item.quantity,
-          unit: item.unit,
-        })),
+        isAvacExtraction(extracted)
+          ? []
+          : extracted.line_items.map((item) => ({
+              position: item.position,
+              raw_text: item.raw_text,
+              quantity: item.quantity,
+              unit: item.unit,
+            })),
         transaction,
       );
 
       const result = await this.requests.update({
         identifierOptions: { id: requestId, org_id: orgId },
         updatePayload: {
-          sender_company: extracted.company,
-          sender_contact: extracted.contact,
-          sender_email: extracted.sender_email,
-          sender_address: extracted.sender_address,
-          delivery_date: extracted.delivery_date,
+          sender_company: isAvacExtraction(extracted) ? null : extracted.company,
+          sender_contact: isAvacExtraction(extracted) ? extracted.customer.name : extracted.contact,
+          sender_email: isAvacExtraction(extracted)
+            ? extracted.customer.email
+            : extracted.sender_email,
+          sender_address: isAvacExtraction(extracted)
+            ? extracted.customer.address
+            : extracted.sender_address,
+          delivery_date: isAvacExtraction(extracted) ? null : extracted.delivery_date,
         },
         transactionOptions: { useTransaction: true, transaction },
       });

@@ -243,7 +243,7 @@ describe('Inbox', () => {
 
   it('shows the empty state when there are no requests', () => {
     renderInbox();
-    expect(screen.getByText(/no requests yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/ainda não existem pedidos/i)).toBeInTheDocument();
   });
 
   it('shows a no-match empty state when a filter excludes every request', async () => {
@@ -256,22 +256,22 @@ describe('Inbox', () => {
     renderInbox();
 
     // filter to a tab the only request does not match
-    await user.click(screen.getByRole('tab', { name: /needs review/i }));
+    await user.click(screen.getByRole('tab', { name: /a rever/i }));
 
-    expect(screen.getByText(/no requests match the current filters/i)).toBeInTheDocument();
-    expect(screen.queryByText(/no requests yet/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/nenhum pedido corresponde aos filtros/i)).toBeInTheDocument();
+    expect(screen.queryByText(/ainda não existem pedidos/i)).not.toBeInTheDocument();
   });
 
   it('shows the loading state while requests are loading', () => {
     requestsState.value = { data: [], isLoading: true, isError: false };
     renderInbox();
-    expect(screen.getByText(/loading requests/i)).toBeInTheDocument();
+    expect(screen.getByText(/a carregar pedidos/i)).toBeInTheDocument();
   });
 
   it('shows the error state when the list fails to load', () => {
     requestsState.value = { data: [], isLoading: false, isError: true };
     renderInbox();
-    expect(screen.getByText(/could not load requests/i)).toBeInTheDocument();
+    expect(screen.getByText(/não foi possível carregar os pedidos/i)).toBeInTheDocument();
   });
 
   it('renders a row with company, subject and status badge', () => {
@@ -285,7 +285,7 @@ describe('Inbox', () => {
 
     expect(screen.getByRole('link', { name: /apex fabrication/i })).toBeInTheDocument();
     expect(screen.getByText(/rfq for steel brackets/i)).toBeInTheDocument();
-    expect(screen.getByText('Sent')).toBeInTheDocument();
+    expect(screen.getByText('Enviado')).toBeInTheDocument();
   });
 
   it('links each row to its processing screen', () => {
@@ -314,7 +314,7 @@ describe('Inbox', () => {
     expect(screen.getByText('Review Co')).toBeInTheDocument();
     expect(screen.getByText('Ready Co')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('tab', { name: /^ready$/i }));
+    await user.click(screen.getByRole('tab', { name: /^prontos$/i }));
 
     expect(screen.queryByText('Review Co')).not.toBeInTheDocument();
     expect(screen.getByText('Ready Co')).toBeInTheDocument();

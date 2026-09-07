@@ -25,8 +25,8 @@ export type ApproveQuoteError = AxiosError<{ message?: string }>;
 export function resolveApproveQuoteError(error: ApproveQuoteError): string {
   const status = error.response?.status;
   const serverMessage = error.response?.data?.message;
-  if (status === 409) return serverMessage ?? 'This quote cannot be approved right now.';
-  if (status === 424) return serverMessage ?? 'Could not generate the quote PDF. Please try again.';
+  if (status === 409) return serverMessage ?? 'Este orçamento não pode ser aprovado agora.';
+  if (status === 424) return serverMessage ?? 'Não foi possível gerar o PDF. Tenta novamente.';
   if (status && status >= 400 && status < 500) return serverMessage ?? GENERIC_ERROR;
   return GENERIC_ERROR;
 }

@@ -37,7 +37,7 @@ const optionalNullableExtractionField = z.preprocess(
   z.string().min(1).nullable(),
 );
 
-export const ExtractionV1Schema = z.object({
+export const LegacyExtractionV1Schema = z.object({
   company: nullableExtractionField,
   contact: nullableExtractionField,
   sender_address: optionalNullableExtractionField,
@@ -50,8 +50,112 @@ export const ExtractionV1Schema = z.object({
   line_items: z.array(ExtractionLineItemSchema).min(1),
 });
 
+const CustomerSchema = z.object({
+  name: z.string().min(1).nullable(),
+  email: z.string().email().nullable(),
+  phone: z.string().min(1).nullable(),
+  address: z.string().min(1).nullable(),
+});
+
+const AvacAreaSchema = z.object({
+  room: z.string().min(1),
+  area_m2: z.number().finite().positive().nullable(),
+});
+
+export const AvacExtractionV1Schema = z.object({
+  vertical: z.literal('avac'),
+  customer: CustomerSchema,
+  avac: z.object({
+    system_type: z.enum(['mono-split', 'multi-split', 'vrv']).nullable(),
+    brand_preference: z.string().min(1).nullable(),
+    areas: z.array(AvacAreaSchema),
+    indoor_units_requested: z.number().int().positive().nullable(),
+    pipe_length_m: z.number().finite().positive().nullable(),
+    install_height_m: z.number().finite().positive().nullable(),
+    wall_type: z.enum(['alvenaria', 'betao', 'pladur']).nullable(),
+    outdoor_unit_distance_m: z.number().finite().nonnegative().nullable(),
+    needs_electrical_panel: z.boolean().nullable(),
+    distance_km: z.number().finite().nonnegative().nullable(),
+    install_type: z.enum(['standard', 'complex']).nullable(),
+    notes: z.string(),
+  }),
+  missing_info: z.array(z.string()),
+  confidence: z.enum(['high', 'medium', 'low']),
+});
+
+/** Legacy input remains accepted to keep the fork mergeable; Stratos requests use the AVAC branch. */
+export const ExtractionV1Schema = z.union([AvacExtractionV1Schema, LegacyExtractionV1Schema]);
+
 export type ExtractionLineItem = z.infer<typeof ExtractionLineItemSchema>;
 export type ExtractionV1 = z.infer<typeof ExtractionV1Schema>;
+export type AvacExtractionV1 = z.infer<typeof AvacExtractionV1Schema>;
+
+export function isAvacExtraction(value: ExtractionV1): value is AvacExtractionV1 {
+  return 'vertical' in value && value.vertical === 'avac';
+}
+
+/** JSON Schema supplied to Claude structured outputs; it contains no price or discount fields. */
+export const AVAC_EXTRACTION_JSON_SCHEMA: Record<string, unknown> = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['vertical', 'customer', 'avac', 'missing_info', 'confidence'],
+  properties: {
+    vertical: { const: 'avac' },
+    customer: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['name', 'email', 'phone', 'address'],
+      properties: {
+        name: { type: ['string', 'null'] },
+        email: { type: ['string', 'null'] },
+        phone: { type: ['string', 'null'] },
+        address: { type: ['string', 'null'] },
+      },
+    },
+    avac: {
+      type: 'object',
+      additionalProperties: false,
+      required: [
+        'system_type',
+        'brand_preference',
+        'areas',
+        'indoor_units_requested',
+        'pipe_length_m',
+        'install_height_m',
+        'wall_type',
+        'outdoor_unit_distance_m',
+        'needs_electrical_panel',
+        'distance_km',
+        'install_type',
+        'notes',
+      ],
+      properties: {
+        system_type: { type: ['string', 'null'], enum: ['mono-split', 'multi-split', 'vrv', null] },
+        brand_preference: { type: ['string', 'null'] },
+        areas: {
+          type: 'array',
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['room', 'area_m2'],
+            properties: { room: { type: 'string' }, area_m2: { type: ['number', 'null'] } },
+          },
+        },
+        indoor_units_requested: { type: ['integer', 'null'] },
+        pipe_length_m: { type: ['number', 'null'] },
+        install_height_m: { type: ['number', 'null'] },
+        wall_type: { type: ['string', 'null'], enum: ['alvenaria', 'betao', 'pladur', null] },
+        outdoor_unit_distance_m: { type: ['number', 'null'] },
+        needs_electrical_panel: { type: ['boolean', 'null'] },
+        distance_km: { type: ['number', 'null'] },
+        install_type: { type: ['string', 'null'], enum: ['standard', 'complex', null] },
+        notes: { type: 'string' },
+      },
+    },
+    missing_info: { type: 'array', items: { type: 'string' } },
+    confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+  },
+};
 
 export const ExtractRequestInputSchema = z.object({
   text: z.string(),

@@ -36,7 +36,7 @@ export function ProcessingRequestPage() {
           <ChevronLeftIcon />
         </Link>
         <h1 className="truncate text-lg font-semibold text-slate-900">
-          Processing Request
+          A processar pedido
           {id && <span className="ml-2 text-sm font-normal text-gray-500">#{id}</span>}
         </h1>
       </div>,
@@ -54,7 +54,7 @@ export function ProcessingRequestPage() {
         to={`/requests/${id}/review`}
         className="flex h-9 items-center rounded-lg border border-border bg-surface px-4 text-sm font-medium text-indigo-600 shadow-sm hover:bg-canvas"
       >
-        Open review
+        Abrir revisão
       </Link>,
     );
     return () => setActions(null);
@@ -63,7 +63,7 @@ export function ProcessingRequestPage() {
   if (!id) {
     return (
       <div className="px-6 py-6">
-        <p className="text-sm text-gray-500">No request ID provided.</p>
+        <p className="text-sm text-gray-500">Não foi indicado um pedido.</p>
       </div>
     );
   }
@@ -81,7 +81,7 @@ export function ProcessingRequestPage() {
           aria-valuenow={pct}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label="Processing progress"
+          aria-label="Progresso do processamento"
         />
       </div>
       <div className="px-6 py-6">

@@ -52,13 +52,13 @@ describe('QuotePdfRenderer', () => {
       expect(text).toContain('Widget A');
       expect(text).toContain('WGT-A');
       expect(text).toContain('Widget B');
-      expect(text).toContain('50.00');
-      expect(text).toContain('5.00');
-      expect(text).toContain('45.00');
+      expect(text).toContain('50,00');
+      expect(text).toContain('5,00');
+      expect(text).toContain('45,00');
       expect(text).toContain('7');
       expect(text).toContain('Net 30');
-      expect(text).toContain('Date: 1 Jul 2026');
-      expect(text).toContain('Valid until 1 Aug 2026');
+      expect(text).toContain('Data: 01/07/2026');
+      expect(text).toContain('Válido até 01/08/2026');
     } finally {
       await parser.destroy();
     }
@@ -97,7 +97,7 @@ describe('QuotePdfRenderer', () => {
       expect(result.text).toContain('Widget 0');
       expect(result.text).toContain('Widget 29');
       expect(result.text).toContain('Total');
-      expect(result.text).toContain('Lead time: 10 days');
+      expect(result.text).toContain('Prazo estimado: 10 dias');
       expect(result.text).toContain('Net 30');
     } finally {
       await parser.destroy();
@@ -155,7 +155,7 @@ describe('QuotePdfRenderer', () => {
       expect(result.text).toContain('LONG-SKU');
       expect(result.text).toContain('Item After Wrap');
       expect(result.text).toContain('Total');
-      expect(result.text).toContain('Lead time: 10 days');
+      expect(result.text).toContain('Prazo estimado: 10 dias');
     } finally {
       await parser.destroy();
     }
@@ -202,7 +202,7 @@ describe('QuotePdfRenderer', () => {
       expect(text).toContain('United States of America');
 
       const addressEnd = text.indexOf('United States of America');
-      const itemHeaderStart = text.indexOf('ITEM DESCRIPTION');
+      const itemHeaderStart = text.indexOf('DESCRIÇÃO');
       expect(addressEnd).toBeGreaterThan(-1);
       expect(itemHeaderStart).toBeGreaterThan(addressEnd);
       expect(text).toContain('Widget A');
@@ -243,7 +243,7 @@ describe('QuotePdfRenderer', () => {
     try {
       const result = await parser.getText();
       expect(result.text).not.toContain('null');
-      expect(result.text).not.toContain('SKU:');
+      expect(result.text).not.toContain('Ref.:');
     } finally {
       await parser.destroy();
     }

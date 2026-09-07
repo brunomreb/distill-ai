@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { useRole } from '../../hooks/useRole';
 import type { Role } from '../../context/RoleContext';
 import { useUser } from '../../context/UserContext';
-import { DistillMark } from './DistillMark';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -12,6 +11,7 @@ interface SidebarProps {
 
 interface NavItem {
   label: string;
+  a11yLabel: string;
   to: string;
   icon: React.ReactNode;
   roles: Role[];
@@ -88,17 +88,37 @@ function SettingsIcon() {
 
 const NAV_ITEMS: NavItem[] = [
   {
-    label: 'Inbox',
+    label: 'Pedidos',
+    a11yLabel: 'Inbox',
     to: '/',
     icon: <InboxIcon />,
     roles: ['RevOps', 'Sales', 'Admin'],
     match: (p) => p === '/' || p === '/requests' || p.startsWith('/requests/'),
   },
-  { label: 'Quotes', to: '/quotes', icon: <QuotesIcon />, roles: ['RevOps', 'Sales', 'Admin'] },
-  { label: 'Catalog', to: '/catalog', icon: <CatalogIcon />, roles: ['RevOps', 'Admin'] },
-  { label: 'Analytics', to: '/analytics', icon: <AnalyticsIcon />, roles: ['RevOps', 'Admin'] },
   {
-    label: 'Settings',
+    label: 'Orçamentos',
+    a11yLabel: 'Quotes',
+    to: '/quotes',
+    icon: <QuotesIcon />,
+    roles: ['RevOps', 'Sales', 'Admin'],
+  },
+  {
+    label: 'Catálogo',
+    a11yLabel: 'Catalog',
+    to: '/catalog',
+    icon: <CatalogIcon />,
+    roles: ['RevOps', 'Admin'],
+  },
+  {
+    label: 'Análise',
+    a11yLabel: 'Analytics',
+    to: '/analytics',
+    icon: <AnalyticsIcon />,
+    roles: ['RevOps', 'Admin'],
+  },
+  {
+    label: 'Definições',
+    a11yLabel: 'Settings',
     to: '/settings',
     icon: <SettingsIcon />,
     roles: ['RevOps', 'Sales', 'Admin'],
@@ -144,7 +164,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       ref={navRef}
       id="sidebar-nav"
       className={[
-        'flex flex-col w-52 flex-none bg-slate-900 h-full',
+        'flex flex-col w-52 flex-none bg-[#020203] h-full border-r border-border',
         'fixed inset-y-0 left-0 z-50 transition-transform duration-200 ease-in-out',
         isOpen ? 'translate-x-0' : '-translate-x-full',
         'md:static md:translate-x-0 md:transition-none',
@@ -152,9 +172,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       aria-label="Main navigation"
     >
       <div className="flex items-center gap-3 px-4 py-5">
-        <DistillMark size={18} color="#fff" />
-        <span className="text-white text-[15px] font-semibold tracking-tight">
-          Distill<span className="text-accent">.ai</span>
+        <span className="h-7 w-1 rounded-full bg-accent" aria-hidden="true" />
+        <span className="text-white text-[14px] font-extrabold tracking-tight">
+          Motor de Orçamentos
         </span>
       </div>
 
@@ -169,10 +189,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 to={item.to}
                 onClick={isOpen ? onClose : undefined}
                 aria-current={isActive ? 'page' : undefined}
+                aria-label={item.a11yLabel}
                 className={[
                   'flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition-colors',
                   isActive
-                    ? 'bg-slate-800 text-white shadow-[inset_3px_0_0_#6366F1]'
+                    ? 'bg-[#17191f] text-white shadow-[inset_3px_0_0_#5eead4]'
                     : 'text-muted hover:text-white hover:bg-slate-800/60',
                 ].join(' ')}
               >

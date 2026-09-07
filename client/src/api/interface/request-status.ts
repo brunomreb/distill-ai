@@ -13,15 +13,15 @@ export type RequestStatus =
 export type RequestType = 'catalog_rfq' | 'service_quote' | 'unknown';
 
 export const requestStatusLabels: Record<RequestStatus, string> = {
-  received: 'Received',
-  parsing: 'Parsing',
-  needs_review: 'Needs review',
-  priced: 'Priced',
-  ready: 'Ready',
-  sent: 'Sent',
-  declined: 'Declined',
-  needs_clarification: 'Needs clarification',
-  failed: 'Failed',
+  received: 'Recebido',
+  parsing: 'Em processamento',
+  needs_review: 'A rever',
+  priced: 'Calculado',
+  ready: 'Pronto',
+  sent: 'Enviado',
+  declined: 'Recusado',
+  needs_clarification: 'A esclarecer',
+  failed: 'Falhou',
 };
 
 /** Runtime guard: true when `value` is one of the known RequestStatus values. */
@@ -34,9 +34,9 @@ export function isRequestStatus(value: string): value is RequestStatus {
 export const QUOTE_APPROVABLE_STATUSES: readonly RequestStatus[] = ['priced', 'needs_review'];
 
 export const requestTypeLabels: Record<RequestType, string> = {
-  catalog_rfq: 'Catalog RFQ',
-  service_quote: 'Service Quote',
-  unknown: 'Unknown',
+  catalog_rfq: 'Pedido de orçamento',
+  service_quote: 'Orçamento de serviço',
+  unknown: 'Desconhecido',
 };
 
 /** Runtime guard: true when `value` is one of the known RequestType values. */

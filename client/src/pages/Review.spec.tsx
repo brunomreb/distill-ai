@@ -144,23 +144,25 @@ describe('Review', () => {
   it('shows a loading state while the request loads', () => {
     mockUseRequest.mockReturnValue({ data: undefined, isLoading: true, isError: false });
     renderReview();
-    expect(screen.getByText(/loading request/i)).toBeInTheDocument();
+    expect(screen.getByText(/a carregar pedido/i)).toBeInTheDocument();
   });
 
   it('shows an error state when the request fails to load', () => {
     mockUseRequest.mockReturnValue({ data: undefined, isLoading: false, isError: true });
     renderReview();
-    expect(screen.getByText(/could not load this request/i)).toBeInTheDocument();
+    expect(screen.getByText(/não foi possível carregar este pedido/i)).toBeInTheDocument();
   });
 
   it('renders the original request pane with sender, body and the attachment download', () => {
     mockUseRequest.mockReturnValue({ data: detail, isLoading: false, isError: false });
     renderReview();
 
-    expect(screen.getByRole('heading', { name: /review · apex fabrication/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /revisão · apex fabrication/i }),
+    ).toBeInTheDocument();
     expect(screen.getByText('dana@apex.example')).toBeInTheDocument();
     expect(screen.getByText(/please quote 200 steel brackets/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /download rfq_apex\.pdf/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /descarregar rfq_apex\.pdf/i })).toBeInTheDocument();
   });
 
   it('renders all three panes with real parsed lines and the suggested-quote total (AC-01, AC-03)', () => {
@@ -168,8 +170,8 @@ describe('Review', () => {
     renderReview();
 
     // Pane headings.
-    expect(screen.getByText(/parsed structure/i)).toBeInTheDocument();
-    expect(screen.getByText(/suggested quote/i)).toBeInTheDocument();
+    expect(screen.getByText(/dados extraídos/i)).toBeInTheDocument();
+    expect(screen.getByText(/orçamento sugerido/i)).toBeInTheDocument();
 
     // Parsed pane: the line, its matched SKU, a confidence chip (62%) and a visible flag marker.
     expect(screen.getByText('200x steel brackets')).toBeInTheDocument();
@@ -178,7 +180,7 @@ describe('Review', () => {
     expect(screen.getByText(/close tie/i)).toBeInTheDocument();
 
     // Quote pane: the running total renders.
-    expect(screen.getByTestId('quote-total')).toHaveTextContent(/2,850\.00/);
+    expect(screen.getByTestId('quote-total')).toHaveTextContent(/2850,00/);
   });
 
   it('shows a defined not-priced state in the quote pane when there is no quote (EC-01)', () => {
@@ -189,7 +191,7 @@ describe('Review', () => {
     });
     renderReview();
 
-    expect(screen.getByText(/not priced yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/ainda sem preço/i)).toBeInTheDocument();
   });
 
   it('offers a retry on a failed fetch (EC-02)', () => {
@@ -197,7 +199,7 @@ describe('Review', () => {
     mockUseRequest.mockReturnValue({ data: undefined, isLoading: false, isError: true, refetch });
     renderReview();
 
-    screen.getByRole('button', { name: /retry/i }).click();
+    screen.getByRole('button', { name: /tentar novamente/i }).click();
     expect(refetch).toHaveBeenCalled();
   });
 
@@ -205,7 +207,7 @@ describe('Review', () => {
     mockUseRequest.mockReturnValue({ data: detail, isLoading: false, isError: false });
     renderReview();
 
-    expect(screen.getByRole('button', { name: /decline/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /recusar/i })).toBeInTheDocument();
   });
 
   it('shows a declined notice instead of action buttons when status is declined', () => {
@@ -216,15 +218,15 @@ describe('Review', () => {
     });
     renderReview();
 
-    expect(screen.queryByRole('button', { name: /decline/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/this request has been declined/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /recusar/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/este pedido foi recusado/i)).toBeInTheDocument();
   });
 
   it('renders the back button in the title slot', () => {
     mockUseRequest.mockReturnValue({ data: detail, isLoading: false, isError: false });
     renderReview();
 
-    expect(screen.getByRole('link', { name: /back to inbox/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /voltar à caixa de entrada/i })).toBeInTheDocument();
   });
 
   it('renders the Copilot explanation block when the hook resolves data (integration)', () => {
@@ -239,11 +241,11 @@ describe('Review', () => {
     });
     renderReview();
 
-    expect(screen.getByText('AI explanation')).toBeInTheDocument();
+    expect(screen.getByText('Explicação IA')).toBeInTheDocument();
     expect(
       screen.getByText('Routed to needs review because of low line confidence.'),
     ).toBeInTheDocument();
-    expect(screen.getByText(/auto-generated, may be less precise/i)).toBeInTheDocument();
+    expect(screen.getByText(/gerada automaticamente; confirma os dados/i)).toBeInTheDocument();
   });
 
   it('opens the DeclineModal when Decline is clicked', async () => {
@@ -251,7 +253,7 @@ describe('Review', () => {
     mockUseRequest.mockReturnValue({ data: detail, isLoading: false, isError: false });
     renderReview();
 
-    await user.click(screen.getByRole('button', { name: /decline/i }));
+    await user.click(screen.getByRole('button', { name: /recusar/i }));
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
@@ -265,7 +267,7 @@ describe('Review', () => {
     });
     renderReview();
 
-    await user.click(screen.getByRole('button', { name: /^clarification$/i }));
+    await user.click(screen.getByRole('button', { name: /^esclarecimento$/i }));
 
     expect(mockNavigate).toHaveBeenCalledWith('/requests/req-1/clarification');
   });
@@ -278,7 +280,7 @@ describe('Review', () => {
     });
     renderReview();
 
-    expect(screen.getByRole('button', { name: /approve & generate/i })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /aprovar e gerar/i })).toBeEnabled();
   });
 
   it('disables Approve & generate when the request has no quote yet', () => {
@@ -289,7 +291,7 @@ describe('Review', () => {
     });
     renderReview();
 
-    expect(screen.getByRole('button', { name: /approve & generate/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /aprovar e gerar/i })).toBeDisabled();
   });
 
   it('disables Approve & generate when the status is not approvable', () => {
@@ -300,7 +302,7 @@ describe('Review', () => {
     });
     renderReview();
 
-    expect(screen.getByRole('button', { name: /approve & generate/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /aprovar e gerar/i })).toBeDisabled();
   });
 
   it('navigates to the Quote Output screen when Approve & generate is clicked', async () => {
@@ -312,7 +314,7 @@ describe('Review', () => {
     });
     renderReview();
 
-    await user.click(screen.getByRole('button', { name: /approve & generate/i }));
+    await user.click(screen.getByRole('button', { name: /aprovar e gerar/i }));
 
     expect(mockNavigate).toHaveBeenCalledWith('/requests/req-1/quote');
   });

@@ -102,6 +102,7 @@ describe('deterministic boundary (US-E4-3)', () => {
     const registry = new NodeRegistry();
     new PriceNode(
       registry,
+      { findByRequestId: vi.fn().mockResolvedValue(null) } as never,
       lineItems as never,
       {
         getRuleSetForOrg: vi.fn().mockResolvedValue({

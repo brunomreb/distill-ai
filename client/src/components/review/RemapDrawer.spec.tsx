@@ -43,7 +43,7 @@ describe('RemapDrawer', () => {
     renderDrawer();
     expect(screen.getByText('SKU-061', { exact: false })).toBeInTheDocument();
     expect(screen.getByText('62%')).toBeInTheDocument();
-    expect(screen.getByText(/10\.00/)).toBeInTheDocument(); // 1000 minor -> 10.00
+    expect(screen.getByText(/10,00/)).toBeInTheDocument(); // 1000 minor -> 10,00
   });
 
   it('AC-01: selecting a candidate and confirming calls the PATCH with that SKU', () => {

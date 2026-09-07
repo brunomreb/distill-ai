@@ -1,7 +1,6 @@
 import type { RefObject } from 'react';
 import { usePageHeader } from '../../context/PageHeaderContext';
 import { useUser } from '../../context/UserContext';
-import { DistillMark } from './DistillMark';
 
 interface TopBarProps {
   isOpen: boolean;
@@ -31,7 +30,7 @@ export function TopBar({ isOpen, menuButtonRef, onMenuClick }: TopBarProps) {
 
   return (
     <header
-      className="flex flex-none items-center px-4 h-12 md:h-14 bg-slate-900 md:bg-surface md:border-b md:border-border md:shadow-sm"
+      className="flex flex-none items-center px-4 h-12 md:h-14 bg-[#020203] md:bg-surface md:border-b md:border-border md:shadow-sm"
       aria-label="Page header"
     >
       <div className="flex items-center gap-3 md:hidden">
@@ -53,9 +52,9 @@ export function TopBar({ isOpen, menuButtonRef, onMenuClick }: TopBarProps) {
             />
           </svg>
         </button>
-        <DistillMark size={18} color="#fff" />
-        <span className="text-white text-[15px] font-semibold tracking-tight">
-          Distill<span className="text-accent">.ai</span>
+        <span className="h-6 w-1 rounded-full bg-accent" aria-hidden="true" />
+        <span className="text-white text-[14px] font-extrabold tracking-tight">
+          Motor de Orçamentos
         </span>
       </div>
 

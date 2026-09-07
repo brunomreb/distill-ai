@@ -5,6 +5,7 @@ import { matchDemoFixture } from '@common/demo/demo-fixtures';
 import { LLMProvider } from '@modules/llm/llm.provider';
 import { ToolContract } from '@modules/tools/interfaces/tool-contract.interface';
 import {
+  AVAC_EXTRACTION_JSON_SCHEMA,
   ExtractRequestInputSchema,
   ExtractionV1Schema,
   UNKNOWN_FIELD,
@@ -20,7 +21,7 @@ export class ExtractRequestToolFactory {
     return {
       toolName: 'extract_request',
       description:
-        'Extract structured company, contact, line items, and dates from raw request text.',
+        'Estrutura pedidos de orçamento AVAC sem calcular preços, descontos ou quantidades.',
       inputSchema: ExtractRequestInputSchema,
       outputSchema: ExtractionV1Schema,
       execute: (input: ExtractRequestInput): Promise<ExtractionV1> => this.execute(input),
@@ -40,6 +41,7 @@ export class ExtractRequestToolFactory {
       prompt,
       temperature: 0.2,
       maxTokens: 1500,
+      jsonSchema: AVAC_EXTRACTION_JSON_SCHEMA,
     });
 
     const wrapped = response.text.match(/^\s*```(?:json)?\s*([\s\S]*)\s*```\s*$/i);
@@ -69,6 +71,9 @@ export class ExtractRequestToolFactory {
     if (!fixture) throw new Error(SYS_MSG.EXTRACTION_DEMO_FIXTURE_UNAVAILABLE);
 
     const fields = fixture.extractedFields;
+    if (fields.vertical === 'avac') {
+      return ExtractionV1Schema.parse(fields);
+    }
     const rawItems = Array.isArray(fields.line_items) ? fields.line_items : [];
     const senderMatches = this.fixtureSenderMatchesText(fields, text);
     return ExtractionV1Schema.parse({
@@ -108,23 +113,18 @@ export class ExtractRequestToolFactory {
         ? `\nPrevious attempt failed validation: ${input.priorFailure}\nCorrect the issues and return valid JSON only.\n`
         : '';
 
-    return `${failureBlock}Extract structured fields from this inbound B2B request.
-Use null for company or contact when the value cannot be mapped from the text. Use "${UNKNOWN_FIELD}" for unit when unknown. Never guess.
-Return ONLY valid JSON with no markdown or prose.
+    return `${failureBlock}Interpreta este pedido de orçamento AVAC em português de Portugal.
+Transcreve apenas factos presentes no texto. Usa null quando a informação não existe e inclui
+os campos em falta em missing_info. Nunca inventes dados.
 
-Required shape:
-{
-  "company": "string or null",
-  "contact": "string or null",
-  "sender_address": "string or null (full postal address if present in the source text, otherwise null)",
-  "sender_email": "email or null",
-  "delivery_date": "YYYY-MM-DD or null",
-  "line_items": [
-    { "position": 1, "raw_text": "string", "quantity": number, "unit": "string" }
-  ]
-}
+Regra inviolável: não calcules preços, descontos, impostos, margens, áreas, quantidades de
+equipamento, horas ou materiais. indoor_units_requested só pode conter um número explicitamente
+pedido pelo cliente; caso contrário usa null. Cada área deve corresponder a uma divisão e medida
+explicitamente mencionadas. O motor determinístico fará todos os cálculos depois desta etapa.
 
-Source text:
+Devolve apenas o objeto JSON exigido pelo schema, sem markdown ou prosa.
+
+Texto original:
 ${input.text}`;
   }
 }

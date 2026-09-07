@@ -14,6 +14,7 @@ export interface QuoteLineInput {
   unitPriceMinor: number;
   amountMinor: number;
   position: number;
+  kind?: 'equipment' | 'material' | 'labor' | 'consumable' | 'margin' | 'tax';
 }
 
 /** The full priced quote to persist for a request, replacing any prior quote for that request. */
@@ -75,6 +76,7 @@ export class QuoteModelAction extends AbstractModelAction<Quote> {
             unit_price_minor: l.unitPriceMinor,
             amount_minor: l.amountMinor,
             position: l.position,
+            kind: l.kind ?? 'equipment',
           })),
         );
       }

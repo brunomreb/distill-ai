@@ -1,10 +1,10 @@
 export type InboxTab = 'all' | 'needs_review' | 'ready' | 'needs_clarification';
 
 const tabs: { id: InboxTab; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'needs_review', label: 'Needs review' },
-  { id: 'ready', label: 'Ready' },
-  { id: 'needs_clarification', label: 'Needs clarification' },
+  { id: 'all', label: 'Todos' },
+  { id: 'needs_review', label: 'A rever' },
+  { id: 'ready', label: 'Prontos' },
+  { id: 'needs_clarification', label: 'A esclarecer' },
 ];
 
 interface InboxTabsProps {
@@ -14,7 +14,7 @@ interface InboxTabsProps {
 
 export function InboxTabs({ active, onChange }: InboxTabsProps) {
   return (
-    <div role="tablist" aria-label="Filter requests" className="flex gap-1 border-b border-border">
+    <div role="tablist" aria-label="Filtrar pedidos" className="flex gap-1 border-b border-border">
       {tabs.map((tab) => {
         const selected = tab.id === active;
         return (

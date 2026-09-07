@@ -9,8 +9,8 @@ export class EmbeddingsClientService {
   private readonly client: OpenAI;
 
   constructor() {
-    const apiKey = env.EMBEDDINGS_API_KEY ?? env.LLM_API_KEY ?? 'placeholder';
-    const baseURL = env.EMBEDDINGS_BASE_URL ?? env.LLM_BASE_URL;
+    const apiKey = env.EMBEDDINGS_API_KEY ?? 'placeholder';
+    const baseURL = env.EMBEDDINGS_BASE_URL;
     this.client = new OpenAI({
       apiKey,
       baseURL,
@@ -25,7 +25,7 @@ export class EmbeddingsClientService {
       throw new EmbeddingUnavailableError('DEMO_MODE is active');
     }
 
-    const apiKey = env.EMBEDDINGS_API_KEY ?? env.LLM_API_KEY;
+    const apiKey = env.EMBEDDINGS_API_KEY;
     if (!apiKey) {
       throw new EmbeddingUnavailableError('No API key configured');
     }

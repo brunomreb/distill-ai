@@ -25,7 +25,7 @@ describe('App', () => {
     renderApp();
 
     expect(screen.getByRole('navigation', { name: /main navigation/i })).toBeInTheDocument();
-    expect(screen.getAllByText(/distill/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/motor de orçamentos/i).length).toBeGreaterThan(0);
     expect(screen.getByRole('link', { name: /inbox/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /quotes/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /settings/i })).toBeInTheDocument();

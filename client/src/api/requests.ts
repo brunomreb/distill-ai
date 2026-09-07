@@ -51,6 +51,7 @@ export interface QuoteLineDetail {
   quantity: number;
   unit_price_minor: number;
   amount_minor: number;
+  kind?: 'equipment' | 'material' | 'labor' | 'consumable' | 'margin' | 'tax';
 }
 
 /** The suggested quote with its running total (US-E6-1 quote pane); also the Quote Output screen's

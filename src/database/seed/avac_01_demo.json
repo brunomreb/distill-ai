@@ -1,0 +1,37 @@
+{
+  "_meta": {
+    "sample_id": "avac-01-demo",
+    "request_type": "service_quote",
+    "match_terms": ["Câmara de Lobos", "Prefiro Daikin", "tubagem deve dar uns 6 metros"]
+  },
+  "source_text": "Bom dia, preciso de climatizar a sala com 35 m2 e dois quartos com 14 m2 cada, numa moradia na Câmara de Lobos. Prefiro Daikin. A tubagem deve dar uns 6 metros e a unidade exterior ficará a cerca de 6 metros das interiores. O meu nome é João Martins, joao.martins@example.pt, telefone 912 345 678. A morada da obra é Rua da Levada 18, 9300-000 Câmara de Lobos.",
+  "extracted_fields": {
+    "vertical": "avac",
+    "customer": {
+      "name": "João Martins",
+      "email": "joao.martins@example.pt",
+      "phone": "912 345 678",
+      "address": "Rua da Levada 18, 9300-000 Câmara de Lobos"
+    },
+    "avac": {
+      "system_type": "multi-split",
+      "brand_preference": "Daikin",
+      "areas": [
+        { "room": "sala", "area_m2": 35 },
+        { "room": "quarto", "area_m2": 14 },
+        { "room": "quarto", "area_m2": 14 }
+      ],
+      "indoor_units_requested": null,
+      "pipe_length_m": 6,
+      "install_height_m": null,
+      "wall_type": null,
+      "outdoor_unit_distance_m": 6,
+      "needs_electrical_panel": null,
+      "distance_km": null,
+      "install_type": "standard",
+      "notes": ""
+    },
+    "missing_info": ["wall_type", "height_over_3m", "electrical_panel_upgrade", "travel_distance_km"],
+    "confidence": "high"
+  }
+}

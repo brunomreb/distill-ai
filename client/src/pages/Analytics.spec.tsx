@@ -64,7 +64,7 @@ describe('Analytics', () => {
     });
     renderAnalytics();
     expect(screen.getByText('Could not load analytics.')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }));
     expect(refetch).toHaveBeenCalled();
   });
 

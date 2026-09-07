@@ -21,6 +21,16 @@ export class PricingRuleModelAction extends AbstractModelAction<PricingRule> {
     super(repository, PricingRule);
   }
 
+  /** Active rule rows for deterministic vertical engines; every query is explicitly tenant scoped. */
+  async getActiveForOrg(orgId: string, vertical: 'avac' | 'caixilharia'): Promise<PricingRule[]> {
+    const { payload } = await this.find({
+      findOptions: { org_id: orgId, active: true, vertical },
+      order: { sort_order: 'ASC' },
+      transactionOptions: { useTransaction: false },
+    });
+    return payload;
+  }
+
   /**
    * Loads the org's active pricing rules under org scope (SEC-02) and projects them into the
    * deterministic rule set the pricing service consumes. A malformed quantity-break config is

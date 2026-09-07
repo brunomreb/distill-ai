@@ -7,6 +7,9 @@ import type { NodeContext, NodeResult, PipelineNode } from '@modules/pipeline/ty
 import { EventsService } from '@modules/events/events.service';
 import { LineItem } from '@modules/catalog/entities/line-item.entity';
 import { LineItemModelAction } from '@modules/catalog/line-item.model-action';
+import { Sku } from '@modules/catalog/entities/sku.entity';
+import { ExtractionModelAction } from '@modules/extraction/extraction.model-action';
+import { AvacExtractionV1Schema } from '@modules/extraction/schemas/extraction-v1.schema';
 import { QuoteModelAction, type QuoteLineInput } from '@modules/quotes/quote.model-action';
 import { StageErrorReason } from '@constants/events.constants';
 import * as SYS_MSG from '@constants/system-messages';
@@ -14,6 +17,8 @@ import { PricingRuleModelAction } from './pricing-rule.model-action';
 import { QuotePricingService } from './quote-pricing.service';
 import { PRICING_BLOCKED_FLAG } from './pricing.constants';
 import type { PricedQuote, PricingLineInput } from './interfaces/pricing.interfaces';
+import { priceAvacQuote, type AvacPricedQuote } from './avac-pricing.engine';
+import { OrgBranding } from '@modules/organizations/entities/org-branding.entity';
 
 /**
  * The price node (US-E4-1 FR-2). It is a PipelineNode with NO ToolRegistry injected: the
@@ -29,6 +34,7 @@ export class PriceNode implements PipelineNode {
 
   constructor(
     registry: NodeRegistry,
+    private readonly extractions: ExtractionModelAction,
     private readonly lineItems: LineItemModelAction,
     private readonly pricingRules: PricingRuleModelAction,
     private readonly pricing: QuotePricingService,
@@ -42,6 +48,12 @@ export class PriceNode implements PipelineNode {
   /** Prices matched lines deterministically from the catalog + org rules and persists the quote - no tool access */
   async run(ctx: NodeContext): Promise<NodeResult> {
     const { requestId, orgId } = ctx;
+
+    const extraction = await this.extractions.findByRequestId(requestId, orgId);
+    const avacExtraction = AvacExtractionV1Schema.safeParse(extraction?.raw_json);
+    if (avacExtraction.success) {
+      return this.priceAvac(requestId, orgId, avacExtraction.data);
+    }
 
     const { payload: lines } = await this.lineItems.list({
       filterRecordOptions: { request_id: requestId },
@@ -103,6 +115,43 @@ export class PriceNode implements PipelineNode {
     return { kind: 'advance', next: this.nextNode };
   }
 
+  private async priceAvac(
+    requestId: string,
+    orgId: string,
+    extraction: Parameters<typeof priceAvacQuote>[0],
+  ): Promise<NodeResult> {
+    const [rules, catalog, branding] = await Promise.all([
+      this.pricingRules.getActiveForOrg(orgId, 'avac'),
+      this.dataSource.manager.find(Sku, { where: { org_id: orgId } }),
+      this.dataSource.manager.findOne(OrgBranding, { where: { org_id: orgId } }),
+    ]);
+    const priced = priceAvacQuote(extraction, rules, catalog, {
+      taxRate: branding?.iva_rate,
+    });
+
+    if (priced.blocked) {
+      await this.quotes.deleteForRequest(requestId);
+      await this.emitPricingRuleMissing(orgId, requestId);
+      await this.emitCompleted(orgId, requestId, null, 0, true);
+      this.logger.warn({ event: 'avac_pricing_blocked', requestId, missing: priced.missingRules });
+      return { kind: 'advance', next: this.nextNode };
+    }
+
+    const quote = await this.quotes.replaceForRequest({
+      requestId,
+      orgId,
+      quoteNumber: `Q-${requestId}`,
+      subtotalMinor: priced.subtotalMinor,
+      discountMinor: 0,
+      totalMinor: priced.totalMinor,
+      leadTimeDays: priced.leadTimeDays,
+      currency: priced.currency,
+      lines: this.toAvacQuoteLines(priced),
+    });
+    await this.emitCompleted(orgId, requestId, quote.id, priced.totalMinor, false);
+    return { kind: 'advance', next: this.nextNode };
+  }
+
   /** Writes the priced unit price + lead time onto each line, tagging blocked lines for review (EC-02). */
   private async persistLinePrices(
     em: EntityManager,
@@ -139,6 +188,10 @@ export class PriceNode implements PipelineNode {
       amountMinor: l.amountMinor,
       position: l.position,
     }));
+  }
+
+  private toAvacQuoteLines(priced: AvacPricedQuote): QuoteLineInput[] {
+    return priced.lines.map((line) => ({ ...line }));
   }
 
   private async emitPricingRuleMissing(orgId: string, requestId: string): Promise<void> {

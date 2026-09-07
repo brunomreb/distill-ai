@@ -20,7 +20,7 @@ export function ErrorBanner({ message, onRetry }: ErrorBannerProps) {
           onClick={onRetry}
           className="shrink-0 rounded border border-lo-tx/30 px-2 py-0.5 text-xs font-medium text-lo-tx hover:bg-lo-tx/10"
         >
-          Retry
+          Tentar novamente
         </button>
       )}
     </div>

@@ -17,3 +17,6 @@ process.env.DATABASE_NAME = envDefault('DATABASE_NAME', 'test');
 process.env.OBJECT_STORE_URL = envDefault('OBJECT_STORE_URL', 'file://./var/object-store');
 process.env.LLM_API_KEY = envDefault('LLM_API_KEY', 'test-key');
 process.env.RULES_CONFIG_PATH = envDefault('RULES_CONFIG_PATH', './config');
+// Unit tests exercise mocked live-provider paths; a developer's DEMO_MODE setting must not replace
+// those mocks with fixture replay during module import.
+process.env.DEMO_MODE = 'false';

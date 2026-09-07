@@ -24,7 +24,7 @@ describe('OriginalAttachmentCard', () => {
     render(<OriginalAttachmentCard requestId="req-1" attachment={attachment} />);
 
     expect(screen.getByText('rfq_apex.pdf')).toBeInTheDocument();
-    expect(screen.getByText(/PDF Document/)).toBeInTheDocument();
+    expect(screen.getByText(/Documento PDF/)).toBeInTheDocument();
     expect(screen.getByText(/1\.2 MB/)).toBeInTheDocument();
   });
 
@@ -33,7 +33,7 @@ describe('OriginalAttachmentCard', () => {
     const user = userEvent.setup();
     render(<OriginalAttachmentCard requestId="req-1" attachment={attachment} />);
 
-    await user.click(screen.getByRole('button', { name: /download rfq_apex\.pdf/i }));
+    await user.click(screen.getByRole('button', { name: /descarregar rfq_apex\.pdf/i }));
 
     expect(mockDownload).toHaveBeenCalledWith('req-1', 'att-1', 'rfq_apex.pdf');
   });

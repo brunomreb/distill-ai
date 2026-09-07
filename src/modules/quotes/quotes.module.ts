@@ -14,11 +14,12 @@ import { RenderQuotePdfToolFactory } from './tools/render-quote-pdf.tool';
 import { DraftQuoteEmailToolFactory } from './tools/draft-quote-email.tool';
 import { QuoteApprovalActions } from './actions/quote-approval.actions';
 import { QuotesController } from './quotes.controller';
+import { OrgBranding } from '@modules/organizations/entities/org-branding.entity';
 
 /** Persistence for priced quotes. Exports QuoteModelAction for the price node (US-E4-1). */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Quote, QuoteLineItem]),
+    TypeOrmModule.forFeature([Quote, QuoteLineItem, OrgBranding]),
     ObjectStoreModule,
     LLMModule,
     EventsModule,

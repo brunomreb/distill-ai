@@ -63,8 +63,8 @@ const envSchema = z
     EMAIL_FROM: z.string().default('App <noreply@example.com>'),
 
     // ── LLM & Circuit Breaker ──────────────────────────────────────────────────
-    LLM_PROVIDER: z.string().default('openai'),
-    LLM_MODEL: z.string().default('qwen-72b'),
+    LLM_PROVIDER: z.enum(['anthropic', 'openai-compatible']).default('anthropic'),
+    LLM_MODEL: z.string().default('claude-sonnet-5'),
     LLM_BASE_URL: z.string().url().optional(),
     LLM_API_KEY: z.string().optional(),
     DEMO_MODE: boolEnv.default(false),
@@ -87,11 +87,11 @@ const envSchema = z
     AUTO_SEND_CAP_MINOR: z.coerce.number().int().nonnegative().optional(),
 
     // ── Embeddings ────────────────────────────────────────────────────────────
-    EMBEDDINGS_MODEL: z.string().default('text-embedding-v4'),
+    EMBEDDINGS_MODEL: z.string().default('text-embedding-3-small'),
     EMBEDDINGS_API_KEY: z.string().optional(),
     EMBEDDINGS_BASE_URL: z.string().url().optional(),
     EMBEDDINGS_DIMENSIONS: z.coerce.number().int().positive().optional(),
-    EMBEDDINGS_PROVIDER: z.string().optional(),
+    EMBEDDINGS_PROVIDER: z.literal('openai').default('openai'),
     CLOSE_TIE_MARGIN: z.coerce.number().min(0).max(0.5).default(0.05),
     // ── Object storage ─────────────────────────────────────────────────────────
     // Bare path or file:// URL for the local adapter; other schemes are rejected at boot for now.

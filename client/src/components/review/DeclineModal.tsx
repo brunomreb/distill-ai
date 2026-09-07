@@ -4,11 +4,11 @@ import type { AxiosError } from 'axios';
 import { useDeclineRequest } from '../../api/requests';
 
 const DECLINE_REASONS = [
-  'Not a relevant request',
-  'Insufficient information',
-  'Customer not qualified',
-  'Duplicate request',
-  'Other',
+  'Pedido não relevante',
+  'Informação insuficiente',
+  'Cliente não elegível',
+  'Pedido duplicado',
+  'Outro',
 ];
 
 interface DeclineModalProps {
@@ -39,7 +39,7 @@ export function DeclineModal({ requestId, open, onClose, triggerRef }: DeclineMo
   }, [mutation, onClose, triggerRef]);
 
   function handleConfirm() {
-    const finalReason = reason === 'Other' ? customReason.trim() : reason;
+    const finalReason = reason === 'Outro' ? customReason.trim() : reason;
     if (!finalReason) return;
     const token = ++tokenRef.current;
     mutation.mutate(
@@ -53,11 +53,11 @@ export function DeclineModal({ requestId, open, onClose, triggerRef }: DeclineMo
           if (token !== tokenRef.current) return;
           const status = err.response?.status;
           if (!status || status >= 500) {
-            setError('Failed to decline. Please try again.');
+            setError('Não foi possível recusar. Tenta novamente.');
             return;
           }
           const data = err.response?.data as { message?: string } | undefined;
-          setError(data?.message ?? 'Invalid input.');
+          setError(data?.message ?? 'Dados inválidos.');
         },
       },
     );
@@ -105,7 +105,7 @@ export function DeclineModal({ requestId, open, onClose, triggerRef }: DeclineMo
   if (!open) return null;
 
   const isConfirmDisabled =
-    !reason || (reason === 'Other' && !customReason.trim()) || mutation.isPending;
+    !reason || (reason === 'Outro' && !customReason.trim()) || mutation.isPending;
 
   return (
     <div
@@ -121,30 +121,30 @@ export function DeclineModal({ requestId, open, onClose, triggerRef }: DeclineMo
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id="decline-modal-title" className="mb-4 text-base font-semibold text-slate-900">
-          Decline request
+          Recusar pedido
         </h2>
         <div className="flex flex-col gap-3">
           <select
             ref={selectRef}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            aria-label="Decline reason"
+            aria-label="Motivo da recusa"
             className="rounded-lg border border-border bg-white px-3 py-2 text-sm"
           >
-            <option value="">Select a reason...</option>
+            <option value="">Seleciona um motivo…</option>
             {DECLINE_REASONS.map((r) => (
               <option key={r} value={r}>
                 {r}
               </option>
             ))}
           </select>
-          {reason === 'Other' && (
+          {reason === 'Outro' && (
             <input
               type="text"
               value={customReason}
               onChange={(e) => setCustomReason(e.target.value)}
-              placeholder="Describe the reason..."
-              aria-label="Custom decline reason"
+              placeholder="Descreve o motivo…"
+              aria-label="Outro motivo de recusa"
               className="rounded-lg border border-border bg-white px-3 py-2 text-sm"
             />
           )}
@@ -160,7 +160,7 @@ export function DeclineModal({ requestId, open, onClose, triggerRef }: DeclineMo
             onClick={handleClose}
             className="h-9 px-4 rounded-button text-[13px] font-medium text-slate-900 hover:bg-canvas transition-colors"
           >
-            Cancel
+            Cancelar
           </button>
           <button
             type="button"
@@ -168,7 +168,7 @@ export function DeclineModal({ requestId, open, onClose, triggerRef }: DeclineMo
             disabled={isConfirmDisabled}
             className="h-9 px-4 rounded-button bg-rose-600 text-white text-[13px] font-medium hover:bg-rose-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {mutation.isPending ? 'Declining...' : 'Confirm decline'}
+            {mutation.isPending ? 'A recusar…' : 'Confirmar recusa'}
           </button>
         </div>
       </div>

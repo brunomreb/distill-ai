@@ -110,7 +110,7 @@ describe('resolveApproveQuoteError', () => {
   it('falls back to generic 409 copy when the server sends no message', () => {
     const error = { response: { status: 409, data: {} } } as ApproveQuoteError;
 
-    expect(resolveApproveQuoteError(error)).toBe('This quote cannot be approved right now.');
+    expect(resolveApproveQuoteError(error)).toBe('Este orçamento não pode ser aprovado agora.');
   });
 
   it('prefers the server message for a 424', () => {
@@ -124,9 +124,7 @@ describe('resolveApproveQuoteError', () => {
   it('falls back to generic 424 copy when the server sends no message', () => {
     const error = { response: { status: 424, data: {} } } as ApproveQuoteError;
 
-    expect(resolveApproveQuoteError(error)).toBe(
-      'Could not generate the quote PDF. Please try again.',
-    );
+    expect(resolveApproveQuoteError(error)).toBe('Não foi possível gerar o PDF. Tenta novamente.');
   });
 
   it('falls back to the generic error message for a 500', () => {
@@ -233,7 +231,7 @@ describe('useApproveQuote', () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
 
     expect(resolveApproveQuoteError(result.current.error as ApproveQuoteError)).toBe(
-      'Could not generate the quote PDF. Please try again.',
+      'Não foi possível gerar o PDF. Tenta novamente.',
     );
   });
 });

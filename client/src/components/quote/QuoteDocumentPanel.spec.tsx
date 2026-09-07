@@ -37,12 +37,12 @@ describe('QuoteDocumentPanel', () => {
       />,
     );
 
-    expect(screen.getByText('Quote Q-2041')).toBeInTheDocument();
+    expect(screen.getByText('Orçamento Q-2041')).toBeInTheDocument();
     expect(screen.getByText('Apex Fabrication')).toBeInTheDocument();
     expect(screen.getByText('James Okafor')).toBeInTheDocument();
     expect(screen.getByText('james.okafor@apexfab.example')).toBeInTheDocument();
     expect(screen.getByText('Hex Bolt M10x50 Stainless A4')).toBeInTheDocument();
-    expect(screen.getByTestId('quote-document-total')).toHaveTextContent('4,120.00');
+    expect(screen.getByTestId('quote-document-total')).toHaveTextContent('4120,00');
   });
 
   it('omits the Bill To block when no sender fields are available', () => {
@@ -55,7 +55,7 @@ describe('QuoteDocumentPanel', () => {
       />,
     );
 
-    expect(screen.queryByText('Bill To')).not.toBeInTheDocument();
+    expect(screen.queryByText('Cliente')).not.toBeInTheDocument();
   });
 
   it('shows the discount row only when discount_minor is greater than zero', () => {
@@ -67,7 +67,7 @@ describe('QuoteDocumentPanel', () => {
         senderEmail={null}
       />,
     );
-    expect(screen.queryByText('Discount')).not.toBeInTheDocument();
+    expect(screen.queryByText('Desconto')).not.toBeInTheDocument();
 
     rerender(
       <QuoteDocumentPanel
@@ -77,7 +77,7 @@ describe('QuoteDocumentPanel', () => {
         senderEmail={null}
       />,
     );
-    expect(screen.getByText('Discount')).toBeInTheDocument();
+    expect(screen.getByText('Desconto')).toBeInTheDocument();
   });
 
   it('keeps the totals footer visible with a long line-item table (EC-03)', () => {

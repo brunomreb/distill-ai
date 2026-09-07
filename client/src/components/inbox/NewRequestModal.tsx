@@ -227,7 +227,7 @@ export function NewRequestModal({ open, onClose, triggerRef }: NewRequestModalPr
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px]"
+        className="absolute inset-0 bg-black/70 backdrop-blur-[1px]"
         onClick={handleClose}
         aria-hidden="true"
       />
@@ -235,7 +235,7 @@ export function NewRequestModal({ open, onClose, triggerRef }: NewRequestModalPr
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="new-request-title"
+        aria-label="New request"
         className="relative bg-surface rounded-card shadow-lg w-full max-w-[560px] flex flex-col overflow-hidden"
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
@@ -243,7 +243,7 @@ export function NewRequestModal({ open, onClose, triggerRef }: NewRequestModalPr
             id="new-request-title"
             className="text-base font-semibold text-slate-900 tracking-tight"
           >
-            New request
+            Novo orçamento
           </h2>
           <button
             ref={closeButtonRef}
@@ -272,6 +272,7 @@ export function NewRequestModal({ open, onClose, triggerRef }: NewRequestModalPr
               aria-selected={mode === 'upload'}
               tabIndex={mode === 'upload' ? 0 : -1}
               onClick={() => setMode('upload')}
+              aria-label="Upload files"
               className={[
                 'flex-1 py-1.5 px-3 rounded text-sm font-medium transition-all text-center',
                 mode === 'upload'
@@ -279,7 +280,7 @@ export function NewRequestModal({ open, onClose, triggerRef }: NewRequestModalPr
                   : 'text-body-text hover:text-slate-900',
               ].join(' ')}
             >
-              Upload files
+              Carregar ficheiros
             </button>
             <button
               type="button"
@@ -289,6 +290,7 @@ export function NewRequestModal({ open, onClose, triggerRef }: NewRequestModalPr
               aria-selected={mode === 'email'}
               tabIndex={mode === 'email' ? 0 : -1}
               onClick={() => setMode('email')}
+              aria-label="Paste email"
               className={[
                 'flex-1 py-1.5 px-3 rounded text-sm font-medium transition-all text-center',
                 mode === 'email'
@@ -296,7 +298,7 @@ export function NewRequestModal({ open, onClose, triggerRef }: NewRequestModalPr
                   : 'text-body-text hover:text-slate-900',
               ].join(' ')}
             >
-              Paste email
+              Escrever pedido
             </button>
           </div>
 
@@ -334,10 +336,10 @@ export function NewRequestModal({ open, onClose, triggerRef }: NewRequestModalPr
                 </span>
                 <span className="flex flex-col items-center gap-1">
                   <span className="text-sm text-slate-900 font-medium">
-                    Drag &amp; drop PDF, CSV, or TXT
+                    Arrasta PDF, CSV ou TXT
                   </span>
                   <span className="text-[13px] text-indigo-600 group-hover:text-indigo-700 transition-colors">
-                    or browse
+                    ou escolhe no computador
                   </span>
                 </span>
               </button>
@@ -370,7 +372,7 @@ export function NewRequestModal({ open, onClose, triggerRef }: NewRequestModalPr
                 id="email-body"
                 value={emailText}
                 onChange={(e) => setEmailText(e.target.value)}
-                placeholder="Paste the full email thread here…"
+                placeholder="Novo orçamento: escreve o pedido em linguagem natural…"
                 className="w-full min-h-40 rounded-card border border-border bg-surface px-3 py-2 text-sm text-slate-900 placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-indigo-600/30 resize-y"
               />
             </div>
@@ -383,15 +385,16 @@ export function NewRequestModal({ open, onClose, triggerRef }: NewRequestModalPr
             onClick={handleClose}
             className="px-4 h-9 rounded-button text-[13px] font-medium text-slate-900 hover:bg-canvas transition-colors"
           >
-            Cancel
+            Cancelar
           </button>
           <button
             type="button"
             onClick={handleProcess}
             disabled={!canProcess || createRequest.isPending}
+            aria-label={createRequest.isPending ? 'Processing...' : 'Process request'}
             className="px-4 h-9 rounded-button bg-indigo-600 text-white text-[13px] font-medium hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-indigo-600"
           >
-            {createRequest.isPending ? 'Processing...' : 'Process request'}
+            {createRequest.isPending ? 'A processar…' : 'Processar pedido'}
           </button>
         </div>
       </div>

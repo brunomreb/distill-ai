@@ -25,6 +25,9 @@ export class QuoteLineItem {
   @Column({ type: 'text' })
   description: string;
 
+  @Column({ type: 'text', default: 'equipment' })
+  kind: 'equipment' | 'material' | 'labor' | 'consumable' | 'margin' | 'tax';
+
   @Column({ type: 'numeric', precision: 12, scale: 2, transformer: numericTransformer })
   quantity: number;
 

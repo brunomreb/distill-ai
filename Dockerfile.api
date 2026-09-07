@@ -23,6 +23,9 @@ RUN pnpm install --frozen-lockfile --prod --filter !client
 COPY --from=builder /app/dist ./dist
 COPY events.schema.json ./events.schema.json
 COPY config/ ./config/
+# DEMO_MODE resolves replay fixtures from the source-tree path at runtime. Keep this narrow copy so
+# the production image contains only the deterministic fixtures, not the TypeScript source tree.
+COPY src/database/seed/ ./src/database/seed/
 # Create the object-store root in the image so the shared named volume inherits `node` ownership on
 # first mount; Docker would otherwise create it root-owned and the runtime user could not write.
 # Ownership is scoped to that directory rather than a recursive chown of /app: it is the only path

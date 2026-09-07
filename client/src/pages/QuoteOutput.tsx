@@ -19,11 +19,11 @@ function buildFallbackEmail(quote: QuoteDetail): { subject: string; body: string
   const total = formatMoney(quote.total_minor, quote.currency);
   const leadTime =
     quote.lead_time_days !== null
-      ? ` The estimated lead time is ${quote.lead_time_days} business days.`
+      ? ` O prazo estimado é de ${quote.lead_time_days} dias úteis.`
       : '';
   return {
-    subject: `Your quote ${quote.quote_number} from Distill.ai`,
-    body: `Hi,\n\nPlease find attached your quote ${quote.quote_number}. The total is ${total}.${leadTime}\n\nBest regards,\nDistill.ai`,
+    subject: `Orçamento ${quote.quote_number} — Stratos`,
+    body: `Olá,\n\nSegue em anexo o orçamento ${quote.quote_number}, no valor total de ${total}.${leadTime}\n\nCom os melhores cumprimentos,\nStratos`,
   };
 }
 
@@ -50,12 +50,12 @@ export function QuoteOutput() {
         <Link
           to={id ? `/requests/${id}/review` : '/'}
           className="flex h-8 w-8 flex-none items-center justify-center rounded text-body-text hover:bg-canvas"
-          aria-label="Back to review"
+          aria-label="Voltar à revisão"
         >
           <ChevronLeftIcon />
         </Link>
         <h1 className="truncate text-lg font-semibold text-slate-900">
-          Quote {quote ? `· ${quote.quote_number}` : ''}
+          Orçamento {quote ? `· ${quote.quote_number}` : ''}
         </h1>
       </div>,
     );
@@ -69,14 +69,14 @@ export function QuoteOutput() {
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
       anchor.href = url;
-      anchor.download = `${quote?.quote_number ?? 'quote'}.pdf`;
+      anchor.download = `${quote?.quote_number ?? 'orcamento'}.pdf`;
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
       setTimeout(() => URL.revokeObjectURL(url), 0);
       setDownloadError('');
     } catch {
-      setDownloadError('Could not download the quote PDF. Please try again.');
+      setDownloadError('Não foi possível descarregar o PDF. Tenta novamente.');
     }
   }, [id, isReady, quote]);
 
@@ -94,10 +94,10 @@ export function QuoteOutput() {
           disabled={!isReady}
           className="h-9 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-slate-900 shadow-sm hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Download PDF
+          Descarregar PDF
         </button>
         {isReady ? (
-          <span className="text-sm font-medium text-hi-tx">This quote has been approved.</span>
+          <span className="text-sm font-medium text-hi-tx">Este orçamento foi aprovado.</span>
         ) : (
           <button
             type="button"
@@ -105,7 +105,7 @@ export function QuoteOutput() {
             disabled={isApprovingQuote}
             className="h-9 rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isApprovingQuote ? 'Approving…' : PRIMARY_ACTION_LABELS.quoteApprove}
+            {isApprovingQuote ? 'A aprovar…' : PRIMARY_ACTION_LABELS.quoteApprove}
           </button>
         )}
       </div>,
@@ -126,13 +126,16 @@ export function QuoteOutput() {
     <div className="flex h-full flex-col px-6 py-6">
       {isLoading ? (
         <div className="rounded-card border border-border bg-surface px-4 py-12 text-center text-sm text-muted">
-          Loading quote…
+          A carregar orçamento…
         </div>
       ) : isError || !request ? (
-        <ErrorBanner message="Could not load this request." onRetry={() => void refetch()} />
+        <ErrorBanner
+          message="Não foi possível carregar este pedido."
+          onRetry={() => void refetch()}
+        />
       ) : !quote ? (
         <ErrorBanner
-          message="This request does not have a quote yet."
+          message="Este pedido ainda não tem orçamento."
           onRetry={() => void refetch()}
         />
       ) : (
@@ -168,10 +171,10 @@ export function QuoteOutput() {
                     className="h-9 rounded-button border border-border px-3 text-sm font-medium text-body-text hover:bg-canvas"
                   >
                     {copyStatus === 'copied'
-                      ? 'Copied!'
+                      ? 'Copiado!'
                       : copyStatus === 'fallback'
-                        ? 'Press Ctrl+C to copy'
-                        : 'Copy to Clipboard'}
+                        ? 'Prime Ctrl+C para copiar'
+                        : 'Copiar'}
                   </button>
                 }
               />

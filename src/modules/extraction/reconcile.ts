@@ -1,4 +1,4 @@
-import type { ExtractionV1 } from './schemas/extraction-v1.schema';
+import { isAvacExtraction, type ExtractionV1 } from './schemas/extraction-v1.schema';
 
 const QUANTITY_TOLERANCE = 0.01;
 
@@ -9,6 +9,9 @@ export type ReconcileResult = { ok: true } | { ok: false; reason: string };
  * Fails only when source text clearly states a count or total that does not match.
  */
 export function reconcile(data: ExtractionV1, sourceText: string): ReconcileResult {
+  if (isAvacExtraction(data)) {
+    return reconcileAvac(data, sourceText);
+  }
   for (const item of data.line_items) {
     if (!item.unit.trim()) {
       return {
@@ -41,6 +44,40 @@ export function reconcile(data: ExtractionV1, sourceText: string): ReconcileResu
   }
 
   return { ok: true };
+}
+
+function reconcileAvac(
+  data: Extract<ExtractionV1, { vertical: 'avac' }>,
+  sourceText: string,
+): ReconcileResult {
+  const normalized = sourceText.toLocaleLowerCase('pt-PT');
+  for (const area of data.avac.areas) {
+    if (!normalized.includes(area.room.toLocaleLowerCase('pt-PT'))) {
+      return { ok: false, reason: `Divisão extraída sem suporte no pedido: ${area.room}` };
+    }
+    if (area.area_m2 !== null && !sourceContainsNumber(normalized, area.area_m2)) {
+      return { ok: false, reason: `Área extraída sem suporte no pedido: ${area.area_m2} m²` };
+    }
+  }
+  const numericFacts: Array<[string, number | null]> = [
+    ['indoor_units_requested', data.avac.indoor_units_requested],
+    ['pipe_length_m', data.avac.pipe_length_m],
+    ['install_height_m', data.avac.install_height_m],
+    ['outdoor_unit_distance_m', data.avac.outdoor_unit_distance_m],
+    ['distance_km', data.avac.distance_km],
+  ];
+  for (const [field, value] of numericFacts) {
+    if (value !== null && !sourceContainsNumber(normalized, value)) {
+      return { ok: false, reason: `Valor extraído sem suporte no pedido: ${field}=${value}` };
+    }
+  }
+  return { ok: true };
+}
+
+function sourceContainsNumber(source: string, value: number): boolean {
+  const escaped = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const decimalComma = escaped.replace('.', ',');
+  return new RegExp(`(^|\\D)(?:${escaped}|${decimalComma})(?=\\D|$)`).test(source);
 }
 
 function parseStatedItemCount(sourceText: string): number | null {

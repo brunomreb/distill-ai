@@ -27,6 +27,7 @@ export function toQuoteDetail(quote: Quote, lines: QuoteLineItem[]): QuoteDetail
       quantity: line.quantity,
       unit_price_minor: line.unit_price_minor,
       amount_minor: line.amount_minor,
+      kind: line.kind,
     })),
   };
 }

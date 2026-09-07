@@ -1,4 +1,6 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { z } from 'zod';
 import * as SYS_MSG from '@constants/system-messages';
 import { CustomHttpException } from '@common/exceptions/custom-http.exception';
@@ -7,6 +9,7 @@ import { RequestModelAction } from '@modules/requests/requests.model-action';
 import { ToolContract } from '@modules/tools/interfaces/tool-contract.interface';
 import { QuoteModelAction } from '../quote.model-action';
 import { QuotePdfRenderer } from '../services/quote-pdf-renderer.service';
+import { OrgBranding } from '@modules/organizations/entities/org-branding.entity';
 
 export const RenderQuotePdfInputSchema = z.object({
   quoteId: z.string().uuid(),
@@ -26,6 +29,7 @@ export class RenderQuotePdfToolFactory {
   constructor(
     private readonly quotes: QuoteModelAction,
     private readonly requests: RequestModelAction,
+    @InjectRepository(OrgBranding) private readonly branding: Repository<OrgBranding>,
     private readonly renderer: QuotePdfRenderer,
     @Inject(OBJECT_STORE) private readonly objectStore: ObjectStore,
   ) {}
@@ -54,6 +58,15 @@ export class RenderQuotePdfToolFactory {
         HttpStatus.NOT_FOUND,
       );
     }
+    const branding = await this.branding.findOne({ where: { org_id: input.orgId } });
+    let logo: Buffer | undefined;
+    if (branding?.logo_url) {
+      try {
+        logo = await this.objectStore.get(branding.logo_url);
+      } catch {
+        // A missing optional logo must not block the quote; all textual branding still renders.
+      }
+    }
 
     const bytes = await this.renderer.render({
       quoteNumber: found.quote.quote_number,
@@ -68,6 +81,7 @@ export class RenderQuotePdfToolFactory {
         quantity: line.quantity,
         unitPriceMinor: line.unit_price_minor,
         amountMinor: line.amount_minor,
+        kind: line.kind,
       })),
       subtotalMinor: found.quote.subtotal_minor,
       discountMinor: found.quote.discount_minor,
@@ -75,7 +89,21 @@ export class RenderQuotePdfToolFactory {
       currency: found.quote.currency,
       leadTimeDays: found.quote.lead_time_days,
       terms: found.quote.terms,
-      validUntil: found.quote.valid_until,
+      validUntil:
+        found.quote.valid_until ??
+        (branding ? addUtcDays(found.quote.created_at, branding.quote_validity_days) : null),
+      branding: branding
+        ? {
+            companyName: branding.company_name,
+            primaryColor: branding.primary_color,
+            vatNumber: branding.vat_number,
+            address: branding.address,
+            email: branding.email,
+            phone: branding.phone,
+            footerText: branding.footer_text,
+            logo,
+          }
+        : undefined,
     });
 
     // Deterministic key from the quote id and idempotency key (not a random uuid): a retry with the
@@ -85,4 +113,10 @@ export class RenderQuotePdfToolFactory {
     const storageUrl = await this.objectStore.put(key, bytes);
     return { storageUrl, bytesWritten: bytes.length };
   }
+}
+
+function addUtcDays(value: Date, days: number): string {
+  const date = new Date(value);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
 }

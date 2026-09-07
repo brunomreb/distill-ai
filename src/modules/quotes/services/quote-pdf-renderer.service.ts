@@ -8,6 +8,18 @@ export interface QuotePdfLineInput {
   quantity: number;
   unitPriceMinor: number;
   amountMinor: number;
+  kind?: 'equipment' | 'material' | 'labor' | 'consumable' | 'margin' | 'tax';
+}
+
+export interface QuotePdfBranding {
+  companyName: string;
+  primaryColor: string;
+  vatNumber: string | null;
+  address: string | null;
+  email: string | null;
+  phone: string | null;
+  footerText: string | null;
+  logo?: Buffer;
 }
 
 export interface QuotePdfInput {
@@ -25,15 +37,18 @@ export interface QuotePdfInput {
   leadTimeDays: number | null;
   terms: string | null;
   validUntil: string | null;
+  branding?: QuotePdfBranding;
 }
 
 /** Mirrors client/src/tokens.json - pdfkit has no access to the CSS token pipeline. */
 const COLOR = {
-  brand: '#4F46E5',
-  ink: '#0F172A',
-  body: '#475569',
-  muted: '#94A3B8',
-  border: '#E5E7EB',
+  brand: '#5EEAD4',
+  page: '#020203',
+  surface: '#0C0D10',
+  ink: '#F7F9FA',
+  body: '#A7B0BC',
+  muted: '#788391',
+  border: '#23262D',
 };
 
 const PAGE_MARGIN = 50;
@@ -42,12 +57,12 @@ const TOTALS_BLOCK_HEIGHT = 80;
 /** Formats a minor-unit amount for display. Money is stored and compared in minor units everywhere
  * else in this codebase; this is the one place it is converted to a decimal string. */
 function formatMinor(minor: number, currency: string): string {
-  return `${currency} ${(minor / 100).toFixed(2)}`;
+  return new Intl.NumberFormat('pt-PT', { style: 'currency', currency }).format(minor / 100);
 }
 
-const DATE_FORMATTER = new Intl.DateTimeFormat('en-GB', {
-  day: 'numeric',
-  month: 'short',
+const DATE_FORMATTER = new Intl.DateTimeFormat('pt-PT', {
+  day: '2-digit',
+  month: '2-digit',
   year: 'numeric',
   timeZone: 'UTC',
 });
@@ -108,9 +123,16 @@ export class QuotePdfRenderer {
     });
 
     const columns = buildColumns(doc);
+    this.paintPage(doc);
     let y = this.renderHeader(doc, columns, input);
     y = this.renderBillTo(doc, columns, input, y);
-    y = this.renderLineItems(doc, columns, input.lines, input.currency, y);
+    y = this.renderLineItems(
+      doc,
+      columns,
+      input.lines.filter((line) => line.kind !== 'tax'),
+      input.currency,
+      y,
+    );
     y = this.ensureRoom(doc, columns, y, TOTALS_BLOCK_HEIGHT);
     y = this.renderTotals(doc, columns, input, y);
     this.renderFooter(doc, columns, input, y);
@@ -119,34 +141,50 @@ export class QuotePdfRenderer {
     return done;
   }
 
+  private paintPage(doc: PDFKit.PDFDocument): void {
+    doc.save().rect(0, 0, doc.page.width, doc.page.height).fill(COLOR.page).restore();
+  }
+
+  private addPage(doc: PDFKit.PDFDocument): void {
+    doc.addPage();
+    this.paintPage(doc);
+  }
+
   /** Starts a new page and repositions to the top margin when `needed` vertical space won't fit. */
   private ensureRoom(doc: PDFKit.PDFDocument, columns: Columns, y: number, needed: number): number {
     if (y + needed <= pageBottom(doc)) {
       return y;
     }
-    doc.addPage();
+    this.addPage(doc);
     return PAGE_MARGIN;
   }
 
   private renderHeader(doc: PDFKit.PDFDocument, columns: Columns, input: QuotePdfInput): number {
     const top = PAGE_MARGIN;
-    const logoX = columns.desc.x;
-    doc
-      .polygon([logoX, top + 7], [logoX + 7, top], [logoX + 14, top + 7], [logoX + 7, top + 14])
-      .fill(COLOR.brand);
+    const brandColor = input.branding?.primaryColor ?? COLOR.brand;
+    if (input.branding?.logo) {
+      doc.image(input.branding.logo, columns.desc.x, top, { fit: [120, 28] });
+    } else {
+      doc
+        .fillColor(brandColor)
+        .fontSize(14)
+        .font('Helvetica-Bold')
+        .text(input.branding?.companyName ?? 'Motor de Orçamentos', columns.desc.x, top + 1);
+    }
+
     doc
       .fillColor(COLOR.ink)
-      .fontSize(14)
-      .text('Distill.ai', columns.desc.x + 20, top + 1);
-
-    doc.fillColor(COLOR.ink).fontSize(16).text(`QUOTE ${input.quoteNumber}`, columns.desc.x, top, {
-      width: columns.contentWidth,
-      align: 'right',
-    });
+      .fontSize(16)
+      .font('Helvetica-Bold')
+      .text(`ORÇAMENTO ${input.quoteNumber}`, columns.desc.x, top, {
+        width: columns.contentWidth,
+        align: 'right',
+      });
     doc
       .fillColor(COLOR.muted)
       .fontSize(9)
-      .text(`Date: ${formatDate(input.issuedDate)}`, columns.desc.x, top + 20, {
+      .font('Helvetica')
+      .text(`Data: ${formatDate(input.issuedDate)}`, columns.desc.x, top + 20, {
         width: columns.contentWidth,
         align: 'right',
       });
@@ -167,7 +205,11 @@ export class QuotePdfRenderer {
     startY: number,
   ): number {
     let y = startY;
-    doc.fillColor(COLOR.muted).fontSize(8).text('BILL TO', columns.desc.x, y);
+    doc
+      .fillColor(COLOR.muted)
+      .fontSize(8)
+      .font('Helvetica-Bold')
+      .text('CLIENTE', columns.desc.x, y);
     y += 14;
     if (input.senderCompany) {
       doc.fillColor(COLOR.ink).fontSize(11).text(input.senderCompany, columns.desc.x, y);
@@ -195,10 +237,11 @@ export class QuotePdfRenderer {
   private renderColumnHeaders(doc: PDFKit.PDFDocument, columns: Columns, startY: number): number {
     let y = startY;
     doc.fillColor(COLOR.muted).fontSize(8);
-    doc.text('ITEM DESCRIPTION', columns.desc.x, y, { width: columns.desc.width });
-    doc.text('QTY', columns.qty.x, y, { width: columns.qty.width, align: 'right' });
-    doc.text('UNIT PRICE', columns.price.x, y, { width: columns.price.width, align: 'right' });
-    doc.text('AMOUNT', columns.amount.x, y, { width: columns.amount.width, align: 'right' });
+    doc.font('Helvetica-Bold');
+    doc.text('DESCRIÇÃO', columns.desc.x, y, { width: columns.desc.width });
+    doc.text('QTD.', columns.qty.x, y, { width: columns.qty.width, align: 'right' });
+    doc.text('PREÇO UNIT.', columns.price.x, y, { width: columns.price.width, align: 'right' });
+    doc.text('TOTAL', columns.amount.x, y, { width: columns.amount.width, align: 'right' });
     y += 16;
     doc.moveTo(columns.desc.x, y).lineTo(columns.rightEdge, y).strokeColor(COLOR.border).stroke();
     return y + 10;
@@ -219,7 +262,7 @@ export class QuotePdfRenderer {
       const skuHeight = line.sku ? 13 : 0;
       const rowHeight = descHeight + skuHeight + 22;
       if (y + rowHeight > pageBottom(doc)) {
-        doc.addPage();
+        this.addPage(doc);
         y = this.renderColumnHeaders(doc, columns, PAGE_MARGIN);
       }
 
@@ -246,7 +289,7 @@ export class QuotePdfRenderer {
         });
       y += descHeight;
       if (line.sku) {
-        doc.fillColor(COLOR.muted).fontSize(8).text(`SKU: ${line.sku}`, columns.desc.x, y, {
+        doc.fillColor(COLOR.muted).fontSize(8).text(`Ref.: ${line.sku}`, columns.desc.x, y, {
           width: columns.desc.width,
         });
         y += 13;
@@ -272,7 +315,7 @@ export class QuotePdfRenderer {
     const valueWidth = columns.amount.width;
 
     doc.fillColor(COLOR.body).fontSize(10);
-    doc.text('Subtotal', labelX, y, { width: labelWidth, align: 'left' });
+    doc.text('Subtotal (sem IVA)', labelX, y, { width: labelWidth, align: 'left' });
     doc.text(formatMinor(input.subtotalMinor, input.currency), valueX, y, {
       width: valueWidth,
       align: 'right',
@@ -281,8 +324,19 @@ export class QuotePdfRenderer {
 
     if (input.discountMinor > 0) {
       doc.fillColor(COLOR.body).fontSize(10);
-      doc.text('Discount', labelX, y, { width: labelWidth, align: 'left' });
+      doc.text('Desconto', labelX, y, { width: labelWidth, align: 'left' });
       doc.text(`-${formatMinor(input.discountMinor, input.currency)}`, valueX, y, {
+        width: valueWidth,
+        align: 'right',
+      });
+      y += 18;
+    }
+
+    const taxLine = input.lines.find((line) => line.kind === 'tax');
+    if (taxLine) {
+      doc.fillColor(COLOR.body).fontSize(10);
+      doc.text(taxLine.description, labelX, y, { width: labelWidth, align: 'left' });
+      doc.text(formatMinor(taxLine.amountMinor, input.currency), valueX, y, {
         width: valueWidth,
         align: 'right',
       });
@@ -291,10 +345,12 @@ export class QuotePdfRenderer {
 
     doc.fillColor(COLOR.ink).fontSize(12);
     doc.text(`Total (${input.currency})`, labelX, y, { width: labelWidth, align: 'left' });
-    doc.fillColor(COLOR.brand).text(formatMinor(input.totalMinor, input.currency), valueX, y, {
-      width: valueWidth,
-      align: 'right',
-    });
+    doc
+      .fillColor(input.branding?.primaryColor ?? COLOR.brand)
+      .text(formatMinor(input.totalMinor, input.currency), valueX, y, {
+        width: valueWidth,
+        align: 'right',
+      });
     return y + 30;
   }
 
@@ -306,14 +362,19 @@ export class QuotePdfRenderer {
   ): void {
     const parts: string[] = [];
     if (input.leadTimeDays !== null) {
-      parts.push(`Lead time: ${input.leadTimeDays} days`);
+      parts.push(`Prazo estimado: ${input.leadTimeDays} dias`);
     }
     if (input.terms) {
-      parts.push(`Terms: ${input.terms}`);
+      parts.push(`Condições: ${input.terms}`);
     }
     if (input.validUntil) {
-      parts.push(`Valid until ${formatDate(input.validUntil)}`);
+      parts.push(`Válido até ${formatDate(input.validUntil)}`);
     }
+    if (input.branding?.vatNumber) parts.push(`NIF: ${input.branding.vatNumber}`);
+    if (input.branding?.address) parts.push(input.branding.address);
+    if (input.branding?.email) parts.push(input.branding.email);
+    if (input.branding?.phone) parts.push(input.branding.phone);
+    if (input.branding?.footerText) parts.push(input.branding.footerText);
     if (parts.length === 0) {
       return;
     }
