@@ -1,0 +1,201 @@
+import { useState } from 'react';
+import type { ReactNode } from 'react';
+import { useBranding, useUpdateBranding } from '../../api/branding';
+import type { Branding, BrandingWritePayload } from '../../api/branding';
+import { ErrorBanner } from '../inbox/ErrorBanner';
+import { rateToPercent, percentToRate } from '../../lib/euroMinor';
+import { GENERIC_ERROR } from '../../lib/errorMessages';
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="flex flex-col gap-1 text-xs font-medium text-muted">
+      {label}
+      {children}
+    </label>
+  );
+}
+
+const inputClass =
+  'h-9 rounded-lg border border-border bg-canvas px-3 text-sm text-body-text placeholder:text-muted focus:border-accent focus:outline-none';
+
+function nullableText(value: string): string | null {
+  return value.trim().length > 0 ? value.trim() : null;
+}
+
+interface BrandingFormProps {
+  initial: Branding;
+  onSubmit: (payload: BrandingWritePayload) => void;
+  isPending: boolean;
+  error: string | null;
+}
+
+function BrandingForm({ initial, onSubmit, isPending, error }: BrandingFormProps) {
+  const [companyName, setCompanyName] = useState(initial.company_name);
+  const [logoUrl, setLogoUrl] = useState(initial.logo_url ?? '');
+  const [primaryColor, setPrimaryColor] = useState(initial.primary_color ?? '');
+  const [vatNumber, setVatNumber] = useState(initial.vat_number ?? '');
+  const [address, setAddress] = useState(initial.address ?? '');
+  const [footerText, setFooterText] = useState(initial.footer_text ?? '');
+  const [ivaPercent, setIvaPercent] = useState(String(rateToPercent(initial.iva_rate)));
+  const [email, setEmail] = useState(initial.email ?? '');
+  const [phone, setPhone] = useState(initial.phone ?? '');
+  const [validityDays, setValidityDays] = useState(String(initial.quote_validity_days));
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const canSubmit = companyName.trim().length > 0 && ivaPercent.trim().length > 0;
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setValidationError(null);
+
+    const ivaValue = Number(ivaPercent);
+    if (!Number.isFinite(ivaValue) || ivaValue < 0) {
+      setValidationError('IVA inválido.');
+      return;
+    }
+    const validityValue = Number(validityDays);
+    if (!Number.isFinite(validityValue) || validityValue < 0) {
+      setValidationError('Validade do orçamento inválida.');
+      return;
+    }
+
+    onSubmit({
+      company_name: companyName.trim(),
+      logo_url: nullableText(logoUrl),
+      primary_color: nullableText(primaryColor),
+      vat_number: nullableText(vatNumber),
+      address: nullableText(address),
+      footer_text: nullableText(footerText),
+      iva_rate: percentToRate(ivaValue),
+      email: nullableText(email),
+      phone: nullableText(phone),
+      quote_validity_days: validityValue,
+    });
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex max-w-xl flex-col gap-3">
+      {(validationError ?? error) && (
+        <p role="alert" className="text-sm text-error-tx">
+          {validationError ?? error}
+        </p>
+      )}
+
+      <Field label="Nome da empresa">
+        <input
+          value={companyName}
+          onChange={(e) => setCompanyName(e.target.value)}
+          className={inputClass}
+        />
+      </Field>
+      <Field label="URL do logótipo">
+        <input
+          value={logoUrl}
+          onChange={(e) => setLogoUrl(e.target.value)}
+          className={inputClass}
+        />
+      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Cor primária">
+          <input
+            value={primaryColor}
+            onChange={(e) => setPrimaryColor(e.target.value)}
+            placeholder="#5eead4"
+            className={inputClass}
+          />
+        </Field>
+        <Field label="NIF">
+          <input
+            value={vatNumber}
+            onChange={(e) => setVatNumber(e.target.value)}
+            className={inputClass}
+          />
+        </Field>
+      </div>
+      <Field label="Morada">
+        <textarea
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          rows={2}
+          className="rounded-lg border border-border bg-canvas px-3 py-2 text-sm text-body-text placeholder:text-muted focus:border-accent focus:outline-none"
+        />
+      </Field>
+      <Field label="Rodapé do orçamento">
+        <textarea
+          value={footerText}
+          onChange={(e) => setFooterText(e.target.value)}
+          rows={2}
+          className="rounded-lg border border-border bg-canvas px-3 py-2 text-sm text-body-text placeholder:text-muted focus:border-accent focus:outline-none"
+        />
+      </Field>
+      <div className="grid grid-cols-3 gap-3">
+        <Field label="IVA (%)">
+          <input
+            type="number"
+            step="0.1"
+            min="0"
+            value={ivaPercent}
+            onChange={(e) => setIvaPercent(e.target.value)}
+            className={inputClass}
+          />
+        </Field>
+        <Field label="Email">
+          <input value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
+        </Field>
+        <Field label="Telefone">
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
+        </Field>
+      </div>
+      <Field label="Validade do orçamento (dias)">
+        <input
+          type="number"
+          min="0"
+          value={validityDays}
+          onChange={(e) => setValidityDays(e.target.value)}
+          className={inputClass}
+        />
+      </Field>
+
+      <div className="mt-2 flex justify-end">
+        <button
+          type="submit"
+          disabled={!canSubmit || isPending}
+          className="h-9 rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isPending ? 'A guardar…' : 'Guardar'}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+export function BrandingPanel() {
+  const { data: branding, isLoading, isError, refetch } = useBranding();
+  const mutation = useUpdateBranding();
+
+  if (isLoading) {
+    return (
+      <div className="rounded-card border border-border bg-surface px-4 py-12 text-center text-sm text-muted">
+        A carregar branding…
+      </div>
+    );
+  }
+
+  if (isError || !branding) {
+    return (
+      <ErrorBanner message="Não foi possível carregar o branding." onRetry={() => void refetch()} />
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <h2 className="text-sm font-semibold text-slate-900">Branding</h2>
+      <BrandingForm
+        initial={branding}
+        onSubmit={(payload) => mutation.mutate(payload)}
+        isPending={mutation.isPending}
+        error={mutation.isError ? GENERIC_ERROR : null}
+      />
+    </div>
+  );
+}

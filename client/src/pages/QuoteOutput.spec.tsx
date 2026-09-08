@@ -12,6 +12,8 @@ const {
   mockDownloadQuotePdf,
   mockUseClipboardCopy,
   mockCopy,
+  mockUseSendQuote,
+  mockSendMutate,
 } = vi.hoisted(() => ({
   mockUseRequest: vi.fn(),
   mockUseApproveQuote: vi.fn(),
@@ -19,6 +21,8 @@ const {
   mockDownloadQuotePdf: vi.fn(),
   mockUseClipboardCopy: vi.fn(),
   mockCopy: vi.fn(),
+  mockUseSendQuote: vi.fn(),
+  mockSendMutate: vi.fn(),
 }));
 
 vi.mock('../api/requests', () => ({
@@ -31,6 +35,7 @@ vi.mock('../api/quotes', async (importOriginal) => {
     ...actual,
     useApproveQuote: () => mockUseApproveQuote(),
     downloadQuotePdf: (requestId: string) => mockDownloadQuotePdf(requestId),
+    useSendQuote: () => mockUseSendQuote(),
   };
 });
 
@@ -50,6 +55,8 @@ const draftQuote: QuoteDetail = {
   pdf_generated_at: null,
   email_draft_subject: null,
   email_draft_body: null,
+  email_sent_at: null,
+  email_recipient: null,
   lines: [
     {
       position: 1,
@@ -122,6 +129,8 @@ describe('QuoteOutput', () => {
     mockDownloadQuotePdf.mockReset();
     mockUseClipboardCopy.mockReset();
     mockCopy.mockReset();
+    mockUseSendQuote.mockReset();
+    mockSendMutate.mockReset();
 
     mockUseApproveQuote.mockReturnValue({
       mutate: mockApproveMutate,
@@ -130,6 +139,12 @@ describe('QuoteOutput', () => {
       error: undefined,
     });
     mockUseClipboardCopy.mockReturnValue({ status: 'idle', copy: mockCopy });
+    mockUseSendQuote.mockReturnValue({
+      mutate: mockSendMutate,
+      isPending: false,
+      isError: false,
+      error: undefined,
+    });
   });
 
   it('pre-approval: shows the draft preview with PDF disabled and approval active', () => {
@@ -198,6 +213,137 @@ describe('QuoteOutput', () => {
     expect(screen.getByRole('button', { name: /descarregar pdf/i })).toBeEnabled();
     expect(screen.queryByRole('button', { name: /aprovar orçamento/i })).not.toBeInTheDocument();
     expect(screen.getByText(/este orçamento foi aprovado/i)).toBeInTheDocument();
+  });
+
+  it('shows the send-email button only when the quote is ready and a recipient is known', () => {
+    const readyRequest: RequestDetail = {
+      ...requestFixture,
+      quote: { ...draftQuote, status: 'ready', pdf_storage_url: 'https://cdn.example/q.pdf' },
+    };
+    mockUseRequest.mockReturnValue({
+      data: readyRequest,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+
+    renderQuoteOutput();
+
+    expect(screen.getByRole('button', { name: /enviar por email/i })).toBeEnabled();
+  });
+
+  it('never auto-sends on mount, even when ready with a known recipient', () => {
+    const readyRequest: RequestDetail = {
+      ...requestFixture,
+      quote: { ...draftQuote, status: 'ready', pdf_storage_url: 'https://cdn.example/q.pdf' },
+    };
+    mockUseRequest.mockReturnValue({
+      data: readyRequest,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+
+    renderQuoteOutput();
+
+    expect(mockSendMutate).not.toHaveBeenCalled();
+  });
+
+  it('hides the send-email button when the quote is not yet ready', () => {
+    mockUseRequest.mockReturnValue({
+      data: requestFixture,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+
+    renderQuoteOutput();
+
+    expect(screen.queryByRole('button', { name: /enviar por email/i })).not.toBeInTheDocument();
+  });
+
+  it('hides the send-email button when there is no known recipient', () => {
+    const readyRequest: RequestDetail = {
+      ...requestFixture,
+      sender_email: null,
+      quote: { ...draftQuote, status: 'ready', pdf_storage_url: 'https://cdn.example/q.pdf' },
+    };
+    mockUseRequest.mockReturnValue({
+      data: readyRequest,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+
+    renderQuoteOutput();
+
+    expect(screen.queryByRole('button', { name: /enviar por email/i })).not.toBeInTheDocument();
+  });
+
+  it('calls sendQuote.mutate when the send-email button is clicked', async () => {
+    const readyRequest: RequestDetail = {
+      ...requestFixture,
+      quote: { ...draftQuote, status: 'ready', pdf_storage_url: 'https://cdn.example/q.pdf' },
+    };
+    mockUseRequest.mockReturnValue({
+      data: readyRequest,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+    const user = userEvent.setup();
+
+    renderQuoteOutput();
+    await user.click(screen.getByRole('button', { name: /enviar por email/i }));
+
+    expect(mockSendMutate).toHaveBeenCalled();
+  });
+
+  it('shows a sent confirmation with the recipient and no send button once the quote is sent (idempotent)', () => {
+    const sentRequest: RequestDetail = {
+      ...requestFixture,
+      quote: {
+        ...draftQuote,
+        status: 'sent',
+        pdf_storage_url: 'https://cdn.example/q.pdf',
+        email_sent_at: '2026-09-08T10:00:00.000Z',
+        email_recipient: 'james.okafor@apexfab.example',
+      },
+    };
+    mockUseRequest.mockReturnValue({
+      data: sentRequest,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+
+    renderQuoteOutput();
+
+    expect(screen.queryByRole('button', { name: /enviar por email/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/enviado.*james\.okafor@apexfab\.example/i)).toBeInTheDocument();
+  });
+
+  it('shows a readable error when sending fails', async () => {
+    const readyRequest: RequestDetail = {
+      ...requestFixture,
+      quote: { ...draftQuote, status: 'ready', pdf_storage_url: 'https://cdn.example/q.pdf' },
+    };
+    mockUseRequest.mockReturnValue({
+      data: readyRequest,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+    mockUseSendQuote.mockReturnValue({
+      mutate: mockSendMutate,
+      isPending: false,
+      isError: true,
+      error: { response: { status: 424, data: { message: 'Sem destinatário válido.' } } },
+    });
+
+    renderQuoteOutput();
+
+    expect(screen.getByText('Sem destinatário válido.')).toBeInTheDocument();
   });
 
   it('fires the PDF fetch when the PDF button is clicked in the ready state', async () => {

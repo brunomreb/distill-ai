@@ -85,3 +85,37 @@ export async function downloadQuotePdf(requestId: string): Promise<Blob> {
   });
   return res.data;
 }
+
+export interface SendQuoteResponse {
+  quote: QuoteDetail;
+}
+
+export async function sendQuote(requestId: string): Promise<SendQuoteResponse> {
+  const res = await client.post<{ data: SendQuoteResponse }>(`/requests/${requestId}/quote/send`);
+  return res.data.data;
+}
+
+export type SendQuoteError = AxiosError<{ message?: string }>;
+
+/** Maps a send-quote failure to display copy. Prefers the server's own message for 4xx (already
+ * sent, not ready, no recipient) since that specific reason is backend-owned copy. */
+export function resolveSendQuoteError(error: SendQuoteError): string {
+  const status = error.response?.status;
+  const serverMessage = error.response?.data?.message;
+  if (status && status >= 400 && status < 500) return serverMessage ?? GENERIC_ERROR;
+  return GENERIC_ERROR;
+}
+
+/** Sends the approved quote by email; invalidates the request detail and quote list caches so
+ * Quote Output, Review, and the quote register all reflect the sent status. */
+export function useSendQuote(requestId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation<SendQuoteResponse, SendQuoteError>({
+    mutationFn: () => sendQuote(requestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: requestKeys.detail(requestId) });
+      queryClient.invalidateQueries({ queryKey: quoteKeys.list() });
+    },
+  });
+}

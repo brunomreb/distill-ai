@@ -96,6 +96,8 @@ const detail: RequestDetail = {
     pdf_generated_at: null,
     email_draft_subject: null,
     email_draft_body: null,
+    email_sent_at: null,
+    email_recipient: null,
     lines: [
       {
         position: 1,

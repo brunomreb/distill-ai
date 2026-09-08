@@ -2,7 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useRequest } from '../api/requests';
 import type { QuoteDetail } from '../api/requests';
-import { useApproveQuote, downloadQuotePdf, resolveApproveQuoteError } from '../api/quotes';
+import {
+  useApproveQuote,
+  useSendQuote,
+  downloadQuotePdf,
+  resolveApproveQuoteError,
+  resolveSendQuoteError,
+} from '../api/quotes';
 import { useClipboardCopy } from '../hooks/useClipboardCopy';
 import { ErrorBanner } from '../components/inbox/ErrorBanner';
 import { QuoteDocumentPanel } from '../components/quote/QuoteDocumentPanel';
@@ -37,6 +43,12 @@ export function QuoteOutput() {
     isError: isApproveQuoteError,
     error: approveQuoteError,
   } = useApproveQuote(id ?? '');
+  const {
+    mutate: sendQuoteMutate,
+    isPending: isSendingQuote,
+    isError: isSendQuoteError,
+    error: sendQuoteError,
+  } = useSendQuote(id ?? '');
   const { status: copyStatus, copy } = useClipboardCopy();
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const { setTitle, setActions } = usePageHeader();
@@ -44,6 +56,8 @@ export function QuoteOutput() {
 
   const quote = request?.quote ?? null;
   const isReady = Boolean(quote?.pdf_storage_url);
+  const canSendEmail = quote?.status === 'ready' && Boolean(request?.sender_email);
+  const isSent = quote?.status === 'sent';
 
   useEffect(() => {
     setTitle(
@@ -110,14 +124,42 @@ export function QuoteOutput() {
             {isApprovingQuote ? 'A aprovar…' : PRIMARY_ACTION_LABELS.quoteApprove}
           </button>
         )}
+        {isSent ? (
+          <span className="text-sm font-medium text-hi-tx">
+            Enviado{quote?.email_recipient ? ` para ${quote.email_recipient}` : ''}.
+          </span>
+        ) : (
+          canSendEmail && (
+            <button
+              type="button"
+              onClick={() => sendQuoteMutate()}
+              disabled={isSendingQuote}
+              className="h-9 rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSendingQuote ? 'A enviar…' : 'Enviar por email'}
+            </button>
+          )
+        )}
       </div>,
     );
     return () => setActions(null);
-  }, [quote, isReady, approveQuoteMutate, isApprovingQuote, handleDownload, setActions]);
+  }, [
+    quote,
+    isReady,
+    isSent,
+    canSendEmail,
+    approveQuoteMutate,
+    isApprovingQuote,
+    sendQuoteMutate,
+    isSendingQuote,
+    handleDownload,
+    setActions,
+  ]);
 
   const approveErrorMessage = isApproveQuoteError
     ? resolveApproveQuoteError(approveQuoteError)
     : null;
+  const sendErrorMessage = isSendQuoteError ? resolveSendQuoteError(sendQuoteError) : null;
 
   const emailDraft = quote ? buildFallbackEmail(quote) : null;
   const emailSubject = quote?.email_draft_subject ?? emailDraft?.subject ?? '';
@@ -144,6 +186,7 @@ export function QuoteOutput() {
         <div className="flex min-h-0 flex-1 flex-col gap-4">
           {downloadError && <ErrorBanner message={downloadError} />}
           {approveErrorMessage && <ErrorBanner message={approveErrorMessage} />}
+          {sendErrorMessage && <ErrorBanner message={sendErrorMessage} />}
 
           <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-3">
             <div className="min-h-0 lg:col-span-2">

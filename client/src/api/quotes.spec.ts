@@ -10,8 +10,11 @@ import {
   quoteKeys,
   resolveApproveQuoteError,
   useApproveQuote,
+  sendQuote,
+  resolveSendQuoteError,
+  useSendQuote,
 } from './quotes';
-import type { ApproveQuoteError } from './quotes';
+import type { ApproveQuoteError, SendQuoteError } from './quotes';
 import { requestKeys } from './requests';
 import type { QuoteDetail, RequestDetail } from './requests';
 import { GENERIC_ERROR } from '../lib/errorMessages';
@@ -34,6 +37,8 @@ const quoteFixture: QuoteDetail = {
   pdf_generated_at: null,
   email_draft_subject: null,
   email_draft_body: null,
+  email_sent_at: null,
+  email_recipient: null,
   lines: [],
 };
 
@@ -250,6 +255,94 @@ describe('useApproveQuote', () => {
 
     expect(resolveApproveQuoteError(result.current.error as ApproveQuoteError)).toBe(
       'Não foi possível gerar o PDF. Tenta novamente.',
+    );
+  });
+});
+
+describe('sendQuote', () => {
+  beforeEach(() => {
+    mockPost.mockReset();
+  });
+
+  it('posts to the send endpoint and returns the unwrapped quote', async () => {
+    const sentQuote: QuoteDetail = {
+      ...quoteFixture,
+      status: 'sent',
+      email_sent_at: '2026-09-08T10:00:00.000Z',
+      email_recipient: 'joao@example.pt',
+    };
+    mockPost.mockResolvedValue({ data: { data: { quote: sentQuote } } });
+
+    const result = await sendQuote('req-1');
+
+    expect(mockPost).toHaveBeenCalledWith('/requests/req-1/quote/send');
+    expect(result).toEqual({ quote: sentQuote });
+  });
+});
+
+describe('resolveSendQuoteError', () => {
+  it('prefers the server message for a 4xx', () => {
+    const error = {
+      response: { status: 409, data: { message: 'O orçamento já foi enviado.' } },
+    } as SendQuoteError;
+
+    expect(resolveSendQuoteError(error)).toBe('O orçamento já foi enviado.');
+  });
+
+  it('falls back to the generic error message when the server sends no message', () => {
+    const error = { response: { status: 500, data: {} } } as SendQuoteError;
+
+    expect(resolveSendQuoteError(error)).toBe(GENERIC_ERROR);
+  });
+});
+
+describe('useSendQuote', () => {
+  beforeEach(() => {
+    mockPost.mockReset();
+  });
+
+  it('invalidates the request detail and quote list caches on success', async () => {
+    const queryClient = makeQueryClient();
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+    const sentQuote: QuoteDetail = {
+      ...quoteFixture,
+      status: 'sent',
+      email_sent_at: '2026-09-08T10:00:00.000Z',
+      email_recipient: 'joao@example.pt',
+    };
+    mockPost.mockResolvedValue({ data: { data: { quote: sentQuote } } });
+
+    const { result } = renderHook(() => useSendQuote('req-1'), {
+      wrapper: makeWrapper(queryClient),
+    });
+
+    await act(async () => {
+      result.current.mutate();
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: requestKeys.detail('req-1') });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: quoteKeys.list() });
+  });
+
+  it('exposes a readable error for the caller to resolve into display copy', async () => {
+    const queryClient = makeQueryClient();
+    const axiosError = {
+      response: { status: 409, data: { message: 'O orçamento já foi enviado.' } },
+    };
+    mockPost.mockRejectedValue(axiosError);
+
+    const { result } = renderHook(() => useSendQuote('req-1'), {
+      wrapper: makeWrapper(queryClient),
+    });
+
+    await act(async () => {
+      result.current.mutate();
+    });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    expect(resolveSendQuoteError(result.current.error as SendQuoteError)).toBe(
+      'O orçamento já foi enviado.',
     );
   });
 });
