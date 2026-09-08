@@ -43,3 +43,33 @@ export function useUpdateBranding() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: brandingKeys.all() }),
   });
 }
+
+export const MAX_LOGO_BYTES = 2 * 1024 * 1024; // 2 MB
+const ALLOWED_LOGO_TYPES = ['image/png', 'image/jpeg'];
+
+/** Client-side guard so an obviously-invalid file never reaches the network. The server is the
+ * real authority on both constraints; this only exists to fail fast with a readable message. */
+export function validateLogoFile(file: File): string | null {
+  if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
+    return 'O logótipo tem de ser um ficheiro PNG ou JPEG.';
+  }
+  if (file.size > MAX_LOGO_BYTES) {
+    return 'O logótipo não pode exceder 2 MB.';
+  }
+  return null;
+}
+
+export async function uploadBrandingLogo(file: File): Promise<Branding> {
+  const form = new FormData();
+  form.append('file', file);
+  const res = await client.post<{ data: Branding }>('/organizations/current/branding/logo', form);
+  return res.data.data;
+}
+
+export function useUploadBrandingLogo() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: uploadBrandingLogo,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: brandingKeys.all() }),
+  });
+}

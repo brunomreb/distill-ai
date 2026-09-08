@@ -1,10 +1,78 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { useBranding, useUpdateBranding } from '../../api/branding';
+import {
+  useBranding,
+  useUpdateBranding,
+  useUploadBrandingLogo,
+  validateLogoFile,
+} from '../../api/branding';
 import type { Branding, BrandingWritePayload } from '../../api/branding';
 import { ErrorBanner } from '../inbox/ErrorBanner';
 import { rateToPercent, percentToRate } from '../../lib/euroMinor';
 import { GENERIC_ERROR } from '../../lib/errorMessages';
+
+interface LogoUploaderProps {
+  logoUrl: string | null;
+}
+
+/** Logo is its own upload endpoint, decoupled from the rest of the form's "edit then Guardar"
+ * flow: it uploads (and shows its own pending/error state) the instant a valid file is picked,
+ * with no free-text field for the URL — logo_url stays a persisted, server-owned key. */
+function LogoUploader({ logoUrl }: LogoUploaderProps) {
+  const mutation = useUploadBrandingLogo();
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    const error = validateLogoFile(file);
+    if (error) {
+      setValidationError(error);
+      return;
+    }
+    setValidationError(null);
+    mutation.mutate(file);
+  }
+
+  const errorMessage = validationError ?? (mutation.isError ? GENERIC_ERROR : null);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-xs font-medium text-muted">Logótipo</span>
+      <div className="flex items-center gap-3">
+        {logoUrl ? (
+          <img
+            src={logoUrl}
+            alt="Logótipo da organização"
+            className="h-12 w-12 rounded-lg border border-border bg-canvas object-contain"
+          />
+        ) : (
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-dashed border-border text-center text-[10px] text-muted">
+            Sem logo
+          </div>
+        )}
+        <label className="flex h-9 cursor-pointer items-center rounded-button border border-border px-3 text-sm font-medium text-body-text hover:bg-canvas">
+          {mutation.isPending ? 'A carregar…' : 'Carregar logótipo'}
+          <input
+            type="file"
+            accept="image/png,image/jpeg"
+            onChange={handleFileChange}
+            disabled={mutation.isPending}
+            className="sr-only"
+            aria-label="Carregar logótipo"
+          />
+        </label>
+      </div>
+      {errorMessage && (
+        <p role="alert" className="text-sm text-error-tx">
+          {errorMessage}
+        </p>
+      )}
+    </div>
+  );
+}
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -31,7 +99,6 @@ interface BrandingFormProps {
 
 function BrandingForm({ initial, onSubmit, isPending, error }: BrandingFormProps) {
   const [companyName, setCompanyName] = useState(initial.company_name);
-  const [logoUrl, setLogoUrl] = useState(initial.logo_url ?? '');
   const [primaryColor, setPrimaryColor] = useState(initial.primary_color ?? '');
   const [vatNumber, setVatNumber] = useState(initial.vat_number ?? '');
   const [address, setAddress] = useState(initial.address ?? '');
@@ -61,7 +128,6 @@ function BrandingForm({ initial, onSubmit, isPending, error }: BrandingFormProps
 
     onSubmit({
       company_name: companyName.trim(),
-      logo_url: nullableText(logoUrl),
       primary_color: nullableText(primaryColor),
       vat_number: nullableText(vatNumber),
       address: nullableText(address),
@@ -85,13 +151,6 @@ function BrandingForm({ initial, onSubmit, isPending, error }: BrandingFormProps
         <input
           value={companyName}
           onChange={(e) => setCompanyName(e.target.value)}
-          className={inputClass}
-        />
-      </Field>
-      <Field label="URL do logótipo">
-        <input
-          value={logoUrl}
-          onChange={(e) => setLogoUrl(e.target.value)}
           className={inputClass}
         />
       </Field>
@@ -190,6 +249,7 @@ export function BrandingPanel() {
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-sm font-semibold text-slate-900">Branding</h2>
+      <LogoUploader logoUrl={branding.logo_url} />
       <BrandingForm
         initial={branding}
         onSubmit={(payload) => mutation.mutate(payload)}
