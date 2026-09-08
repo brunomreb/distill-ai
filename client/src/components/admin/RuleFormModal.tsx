@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { Rule, RuleType, RuleWritePayload } from '../../api/pricingRules';
 import type { Vertical } from '../../lib/vertical';
 import { verticalLabels } from '../../lib/vertical';
+import { RULE_TYPE_LABELS, RULE_TYPES } from '../../lib/ruleTypes';
 import { parseJsonObjectOrNull } from '../../lib/jsonField';
 
 interface RuleFormModalProps {
@@ -14,18 +15,6 @@ interface RuleFormModalProps {
   error: string | null;
 }
 
-/** rule_type options and PT-PT labels, from the build spec (section 5). */
-const RULE_TYPE_LABELS: Record<RuleType, string> = {
-  catalog_unit: 'Preço unitário do catálogo',
-  included_allowance: 'Quantidade incluída',
-  conditional_surcharge: 'Sobretaxa condicional',
-  fixed_adder: 'Extra fixo',
-  labor_hours: 'Horas de mão de obra',
-  margin_markup: 'Margem comercial',
-  tax: 'Imposto (IVA)',
-};
-
-const RULE_TYPES = Object.keys(RULE_TYPE_LABELS) as RuleType[];
 const VERTICALS = Object.keys(verticalLabels) as Vertical[];
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -175,7 +164,7 @@ export function RuleFormModal({
               type="checkbox"
               checked={active}
               onChange={(e) => setActive(e.target.checked)}
-              className="accent-indigo-600"
+              className="accent-accent"
             />
             Ativa
           </label>
@@ -192,7 +181,7 @@ export function RuleFormModal({
           <button
             type="submit"
             disabled={!canSubmit || isPending}
-            className="h-9 rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-9 rounded-lg bg-accent px-4 text-sm font-medium text-brand-ink hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isPending ? 'A guardar…' : 'Guardar'}
           </button>

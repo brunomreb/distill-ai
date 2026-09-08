@@ -182,3 +182,25 @@ describe('Settings — onboarding', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
+
+describe('Settings — brand', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    mockUseOrganizations.mockReturnValue({ data: orgs, isLoading: false });
+    mockUseCreateOrganization.mockReturnValue({
+      mutate: mockCreateOrgMutate,
+      isPending: false,
+      isError: false,
+      error: null,
+    });
+  });
+
+  it('never renders a violet/purple/pink/rose/indigo class; primary actions use the teal accent token', () => {
+    const { container } = renderSettings();
+
+    expect(container.innerHTML).not.toMatch(/violet|purple|pink|rose|indigo/);
+    expect(screen.getByRole('button', { name: /criar organização/i }).className).toContain(
+      'bg-accent',
+    );
+  });
+});

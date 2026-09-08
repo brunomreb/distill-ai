@@ -148,6 +148,19 @@ describe('RulesPanel', () => {
     );
   });
 
+  it('offers qty_break as a selectable rule type (caixilharia area discounts)', async () => {
+    const user = userEvent.setup();
+    renderPanel();
+
+    await user.click(screen.getByRole('button', { name: /nova regra/i }));
+
+    expect(
+      within(screen.getByLabelText(/tipo de regra/i)).getByRole('option', {
+        name: /escalões de quantidade/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
   it('requires confirmation before deleting a rule', async () => {
     const user = userEvent.setup();
     renderPanel();
@@ -161,8 +174,8 @@ describe('RulesPanel', () => {
     expect(mockDeleteMutate).toHaveBeenCalledWith('rule-1', expect.anything());
   });
 
-  it('never renders a violet/purple/pink/rose class or a pill (rounded-full) shape', () => {
+  it('never renders a violet/purple/pink/rose/indigo class or a pill (rounded-full) shape', () => {
     const { container } = renderPanel();
-    expect(container.innerHTML).not.toMatch(/violet|purple|pink|rose|rounded-full/);
+    expect(container.innerHTML).not.toMatch(/violet|purple|pink|rose|indigo|rounded-full/);
   });
 });

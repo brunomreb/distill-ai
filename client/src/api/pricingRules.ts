@@ -2,7 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import client from './client';
 import type { Vertical } from '../lib/vertical';
 
-/** rule_type values from the build spec (section 5): each shapes `config` differently. */
+/** rule_type values from the build spec (section 5), plus qty_break for caixilharia's tiered
+ * area discounts (section 7); each shapes `config` differently. */
 export type RuleType =
   | 'catalog_unit'
   | 'included_allowance'
@@ -10,7 +11,8 @@ export type RuleType =
   | 'fixed_adder'
   | 'labor_hours'
   | 'margin_markup'
-  | 'tax';
+  | 'tax'
+  | 'qty_break';
 
 /** One pricing rule as managed in the admin CRUD (GET/POST/PATCH/DELETE /pricing/admin/rules). */
 export interface Rule {

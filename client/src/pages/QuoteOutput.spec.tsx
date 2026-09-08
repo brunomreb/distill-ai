@@ -463,4 +463,41 @@ describe('QuoteOutput', () => {
       expect.anything(),
     );
   });
+
+  // The vertical badge in the title is a Phase 2 component (out of scope for this cleanup) and
+  // still uses the indigo-* namespace internally, so the check is scoped to the actions this
+  // page itself renders rather than the whole container.
+  it('renders the Aprovar button on the teal accent token, never indigo/violet/purple/pink/rose', () => {
+    mockUseRequest.mockReturnValue({
+      data: requestFixture,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+
+    renderQuoteOutput();
+
+    const approveButton = screen.getByRole('button', { name: /aprovar orçamento/i });
+    expect(approveButton.className).not.toMatch(/violet|purple|pink|rose|indigo/);
+    expect(approveButton.className).toContain('bg-accent');
+  });
+
+  it('renders the Enviar por email button on the teal accent token, never indigo/violet/purple/pink/rose', () => {
+    const readyRequest: RequestDetail = {
+      ...requestFixture,
+      quote: { ...draftQuote, status: 'ready', pdf_storage_url: 'https://cdn.example/q.pdf' },
+    };
+    mockUseRequest.mockReturnValue({
+      data: readyRequest,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+
+    renderQuoteOutput();
+
+    const sendButton = screen.getByRole('button', { name: /enviar por email/i });
+    expect(sendButton.className).not.toMatch(/violet|purple|pink|rose|indigo/);
+    expect(sendButton.className).toContain('bg-accent');
+  });
 });

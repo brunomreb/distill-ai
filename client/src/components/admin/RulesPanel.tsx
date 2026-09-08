@@ -1,21 +1,12 @@
 import { useState } from 'react';
 import { useRules, useCreateRule, useUpdateRule, useDeleteRule } from '../../api/pricingRules';
-import type { Rule, RuleWritePayload, RuleType } from '../../api/pricingRules';
+import type { Rule, RuleWritePayload } from '../../api/pricingRules';
 import { RuleFormModal } from './RuleFormModal';
 import { ConfirmDialog } from './ConfirmDialog';
 import { ErrorBanner } from '../inbox/ErrorBanner';
 import { verticalLabels } from '../../lib/vertical';
+import { RULE_TYPE_LABELS } from '../../lib/ruleTypes';
 import { GENERIC_ERROR } from '../../lib/errorMessages';
-
-const RULE_TYPE_LABELS: Record<RuleType, string> = {
-  catalog_unit: 'Preço unitário do catálogo',
-  included_allowance: 'Quantidade incluída',
-  conditional_surcharge: 'Sobretaxa condicional',
-  fixed_adder: 'Extra fixo',
-  labor_hours: 'Horas de mão de obra',
-  margin_markup: 'Margem comercial',
-  tax: 'Imposto (IVA)',
-};
 
 type FormTarget = { mode: 'create' } | { mode: 'edit'; rule: Rule };
 
@@ -51,7 +42,7 @@ export function RulesPanel() {
         <button
           type="button"
           onClick={() => setFormTarget({ mode: 'create' })}
-          className="h-9 rounded-button bg-indigo-600 px-4 text-sm font-medium text-white hover:bg-indigo-700"
+          className="h-9 rounded-button bg-accent px-4 text-sm font-medium text-brand-ink hover:bg-accent/90"
         >
           + Nova regra
         </button>
@@ -93,7 +84,7 @@ export function RulesPanel() {
                 (rules ?? []).map((rule) => (
                   <tr key={rule.id} className="border-b border-border last:border-0">
                     <td className="px-4 py-3">
-                      <span className="rounded bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+                      <span className="rounded bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent">
                         {verticalLabels[rule.vertical]}
                       </span>
                     </td>

@@ -81,7 +81,7 @@ export function ProductsPanel() {
           <button
             type="button"
             onClick={() => setFormTarget({ mode: 'create' })}
-            className="h-9 rounded-button bg-indigo-600 px-4 text-sm font-medium text-white hover:bg-indigo-700"
+            className="h-9 rounded-button bg-accent px-4 text-sm font-medium text-brand-ink hover:bg-accent/90"
           >
             + Novo produto
           </button>

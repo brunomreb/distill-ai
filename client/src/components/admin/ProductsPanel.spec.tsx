@@ -205,8 +205,11 @@ describe('ProductsPanel', () => {
     expect(screen.getByText(/preço em falta/i)).toBeInTheDocument();
   });
 
-  it('never renders a violet/purple/pink/rose class or a pill (rounded-full) shape', () => {
+  it('never renders a violet/purple/pink/rose/indigo class or a pill (rounded-full) shape, including inside the form modal', async () => {
+    const user = userEvent.setup();
     const { container } = renderPanel();
-    expect(container.innerHTML).not.toMatch(/violet|purple|pink|rose|rounded-full/);
+    await user.click(screen.getByRole('button', { name: /novo produto/i }));
+
+    expect(container.innerHTML).not.toMatch(/violet|purple|pink|rose|indigo|rounded-full/);
   });
 });

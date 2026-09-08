@@ -119,7 +119,7 @@ export function QuoteOutput() {
             type="button"
             onClick={() => approveQuoteMutate()}
             disabled={isApprovingQuote}
-            className="h-9 rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-9 rounded-lg bg-accent px-4 text-sm font-medium text-brand-ink shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isApprovingQuote ? 'A aprovar…' : PRIMARY_ACTION_LABELS.quoteApprove}
           </button>
@@ -134,7 +134,7 @@ export function QuoteOutput() {
               type="button"
               onClick={() => sendQuoteMutate()}
               disabled={isSendingQuote}
-              className="h-9 rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+              className="h-9 rounded-lg bg-accent px-4 text-sm font-medium text-brand-ink shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSendingQuote ? 'A enviar…' : 'Enviar por email'}
             </button>

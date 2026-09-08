@@ -106,8 +106,8 @@ export function resolveSendQuoteError(error: SendQuoteError): string {
   return GENERIC_ERROR;
 }
 
-/** Sends the approved quote by email; invalidates the request detail and quote list caches so
- * Quote Output, Review, and the quote register all reflect the sent status. */
+/** Sends the approved quote by email; invalidates the request detail, request list, and quote
+ * list caches so the Quote Output, Inbox, Review, and quote register all reflect the sent status. */
 export function useSendQuote(requestId: string) {
   const queryClient = useQueryClient();
 
@@ -115,6 +115,7 @@ export function useSendQuote(requestId: string) {
     mutationFn: () => sendQuote(requestId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: requestKeys.detail(requestId) });
+      queryClient.invalidateQueries({ queryKey: requestKeys.lists() });
       queryClient.invalidateQueries({ queryKey: quoteKeys.list() });
     },
   });

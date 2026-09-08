@@ -301,7 +301,9 @@ describe('useSendQuote', () => {
     mockPost.mockReset();
   });
 
-  it('invalidates the request detail and quote list caches on success', async () => {
+  // Sending can also flip the request's own status to 'sent' (RequestStatus includes it), so the
+  // Inbox list needs the same invalidation useApproveQuote already does for its own transitions.
+  it('invalidates the request detail, request list, and quote list caches on success', async () => {
     const queryClient = makeQueryClient();
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
     const sentQuote: QuoteDetail = {
@@ -322,6 +324,7 @@ describe('useSendQuote', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: requestKeys.detail('req-1') });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: requestKeys.lists() });
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: quoteKeys.list() });
   });
 

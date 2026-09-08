@@ -160,7 +160,7 @@ function BrandingForm({ initial, onSubmit, isPending, error }: BrandingFormProps
         <button
           type="submit"
           disabled={!canSubmit || isPending}
-          className="h-9 rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="h-9 rounded-lg bg-accent px-4 text-sm font-medium text-brand-ink hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isPending ? 'A guardar…' : 'Guardar'}
         </button>

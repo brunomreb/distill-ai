@@ -112,7 +112,7 @@ export function Settings() {
           <button
             type="submit"
             disabled={newOrgName.trim().length === 0 || createOrgMutation.isPending}
-            className="h-9 rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-9 rounded-lg bg-accent px-4 text-sm font-medium text-brand-ink hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {createOrgMutation.isPending ? 'A criar…' : 'Criar organização'}
           </button>
@@ -138,7 +138,7 @@ export function Settings() {
                 value={org.id}
                 checked={effectiveOrgId === org.id}
                 onChange={() => setSelectedOrgId(org.id)}
-                className="accent-indigo-600"
+                className="accent-accent"
               />
               {org.name} · {verticalLabels[org.vertical]}
             </label>
@@ -164,7 +164,7 @@ export function Settings() {
                 value={value}
                 checked={role === value}
                 onChange={() => handleRoleChange(value)}
-                className="accent-indigo-600"
+                className="accent-accent"
               />
               {label}
             </label>

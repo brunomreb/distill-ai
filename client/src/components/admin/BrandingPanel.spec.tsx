@@ -95,8 +95,8 @@ describe('BrandingPanel', () => {
     );
   });
 
-  it('never renders a violet/purple/pink/rose class or a pill (rounded-full) shape', () => {
+  it('never renders a violet/purple/pink/rose/indigo class or a pill (rounded-full) shape', () => {
     const { container } = renderPanel();
-    expect(container.innerHTML).not.toMatch(/violet|purple|pink|rose|rounded-full/);
+    expect(container.innerHTML).not.toMatch(/violet|purple|pink|rose|indigo|rounded-full/);
   });
 });

@@ -91,7 +91,7 @@ describe('ConfirmDialog', () => {
     expect(onCancel).toHaveBeenCalledOnce();
   });
 
-  it('never renders a violet/purple/pink/rose class or a pill (rounded-full) shape', () => {
+  it('never renders a violet/purple/pink/rose/indigo class or a pill (rounded-full) shape', () => {
     render(
       <ConfirmDialog
         open
@@ -104,6 +104,6 @@ describe('ConfirmDialog', () => {
     );
 
     const dialog = screen.getByRole('dialog');
-    expect(dialog.innerHTML).not.toMatch(/violet|purple|pink|rose|rounded-full/);
+    expect(dialog.innerHTML).not.toMatch(/violet|purple|pink|rose|indigo|rounded-full/);
   });
 });
