@@ -9,6 +9,7 @@ import { Sku } from './entities/sku.entity';
 import type { Queue } from 'bull';
 import { CATALOG_JOBS, QUEUES, catalogEmbeddingJobId } from '@common/constants/queue.constants';
 import type { AfterCommitTask } from '@common/http/after-commit';
+import { isEuroCurrency, STRATOS_CURRENCY } from '@common/constants/currency.constants';
 
 export interface CatalogUpload {
   originalname: string;
@@ -239,6 +240,11 @@ export class CatalogImportService {
       }
     }
 
+    const currency = (this.optionalText(row.currency) ?? STRATOS_CURRENCY).toUpperCase();
+    if (!isEuroCurrency(currency)) {
+      throw new Error('A moeda tem de ser EUR');
+    }
+
     return {
       sku_code: skuCode,
       name,
@@ -246,7 +252,7 @@ export class CatalogImportService {
       attributes,
       base_price_minor: basePriceMinor,
       cost_minor: costMinor,
-      currency: (this.optionalText(row.currency) ?? 'EUR').toUpperCase(),
+      currency: STRATOS_CURRENCY,
       lead_time_days:
         row.lead_time_days === undefined || row.lead_time_days === null || row.lead_time_days === ''
           ? null

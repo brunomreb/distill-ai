@@ -6,7 +6,7 @@ import { DraftQuoteEmailToolFactory } from '../tools/draft-quote-email.tool';
 const INPUT = {
   quoteNumber: 'Q-001',
   totalMinor: 150000,
-  currency: 'GBP',
+  currency: 'EUR',
   leadTimeDays: 5,
   senderContact: 'Jane',
   senderCompany: 'Acme',

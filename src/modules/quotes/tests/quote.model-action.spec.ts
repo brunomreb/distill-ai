@@ -41,6 +41,27 @@ describe('QuoteModelAction.listForOrg', () => {
   });
 });
 
+describe('QuoteModelAction.replaceForRequest', () => {
+  it('rejects a quote in a currency other than EUR before opening a transaction', async () => {
+    const { action, dataSource } = setup();
+
+    await expect(
+      action.replaceForRequest({
+        requestId: 'request-1',
+        orgId: 'org-1',
+        quoteNumber: 'Q-1',
+        subtotalMinor: 100,
+        discountMinor: 0,
+        totalMinor: 123,
+        leadTimeDays: null,
+        currency: 'NGN',
+        lines: [],
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(dataSource.transaction).not.toHaveBeenCalled();
+  });
+});
+
 describe('QuoteModelAction.tryClaimForApproval', () => {
   it('claims a draft quote and returns true', async () => {
     const { action, repository } = setup();

@@ -37,7 +37,7 @@ export class Quote extends BaseEntity {
   @Column({ type: 'int' })
   total_minor: number;
 
-  @Column({ type: 'text', default: 'GBP' })
+  @Column({ type: 'text', default: 'EUR' })
   currency: string;
 
   @Column({ type: 'text', nullable: true })

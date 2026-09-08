@@ -32,6 +32,7 @@ export const StageErrorReason = {
   LLM_ERROR: 'llm_error',
   VECTOR_STORE_UNAVAILABLE: 'vector_store_unavailable',
   PRICING_RULE_MISSING: 'pricing_rule_missing',
+  CATALOG_CURRENCY_MUST_BE_EUR: 'catalog_currency_must_be_eur',
   UNKNOWN: 'unknown',
 } as const;
 export type StageErrorReasonValue = (typeof StageErrorReason)[keyof typeof StageErrorReason];

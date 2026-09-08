@@ -20,7 +20,7 @@ function setup() {
     subtotal_minor: 1000,
     discount_minor: 0,
     total_minor: 1000,
-    currency: 'GBP',
+    currency: 'EUR',
     lead_time_days: 5,
     terms: 'Net 30',
     valid_until: '2026-08-01',

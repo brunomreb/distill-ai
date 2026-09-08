@@ -33,7 +33,7 @@ function makeLine(overrides: Partial<FakeLine> = {}): FakeLine {
     raw_text: 'bolts',
     quantity: 500,
     matched_sku_id: 'sku-1',
-    matched_sku: { name: 'M6 bolt', base_price_minor: 1000, lead_time_days: 7, currency: 'GBP' },
+    matched_sku: { name: 'M6 bolt', base_price_minor: 1000, lead_time_days: 7, currency: 'EUR' },
     flags: [],
     ...overrides,
   };
@@ -83,18 +83,19 @@ function setup(lines: FakeLine[], ruleSet: PricingRuleSet = RULES) {
   const events = { emit: vi.fn().mockResolvedValue(undefined) } as unknown as EventsService;
   const registry = new NodeRegistry();
 
+  const pricing = new QuotePricingService();
   const node = new PriceNode(
     registry,
     { findByRequestId: vi.fn().mockResolvedValue(null) } as never,
     lineItems as never,
     pricingRules,
-    new QuotePricingService(),
+    pricing,
     quotes,
     events,
     dataSource as never,
   );
 
-  return { node, registry, events, quotes, replaceCalls, deleteCalls, updateCalls };
+  return { node, registry, events, quotes, pricing, replaceCalls, deleteCalls, updateCalls };
 }
 
 describe('PriceNode', () => {
@@ -122,7 +123,7 @@ describe('PriceNode', () => {
       requestId: 'req-1',
       orgId: 'org-1',
       quoteNumber: 'Q-req-1',
-      currency: 'GBP',
+      currency: 'EUR',
       subtotalMinor: 500000,
       discountMinor: 50000,
       totalMinor: 450000,
@@ -167,6 +168,25 @@ describe('PriceNode', () => {
     expect(replaceCalls[0].lines).toHaveLength(1);
     expect(replaceCalls[0].lines[0].position).toBe(2);
     expect(replaceCalls[0].lines[0].quantity).toBe(60);
+  });
+
+  it('fails closed before arithmetic when a matched SKU is not in EUR', async () => {
+    const { node, pricing, replaceCalls, deleteCalls, events } = setup([
+      makeLine({ matched_sku: { ...makeLine().matched_sku!, currency: 'NGN' } }),
+    ]);
+    const priceQuote = vi.spyOn(pricing, 'priceQuote');
+
+    await node.run(ctx);
+
+    expect(priceQuote).not.toHaveBeenCalled();
+    expect(replaceCalls).toHaveLength(0);
+    expect(deleteCalls).toEqual(['req-1']);
+    expect(events.emit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventName: 'stage.error',
+        attributes: expect.objectContaining({ reason: 'catalog_currency_must_be_eur' }),
+      }),
+    );
   });
 
   it('EC-02: with no pricing rules, prices at base, flags the line, and emits a stage error', async () => {

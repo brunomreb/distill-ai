@@ -149,7 +149,7 @@ export class RequestDetailResponseDto extends RequestSummaryResponseDto {
       subtotal_minor: { type: 'number', example: 230000 },
       discount_minor: { type: 'number', example: 11500 },
       total_minor: { type: 'number', example: 218500 },
-      currency: { type: 'string', example: 'NGN' },
+      currency: { type: 'string', example: 'EUR' },
       lead_time_days: { type: 'number', nullable: true, example: 3 },
       lines: {
         type: 'array',

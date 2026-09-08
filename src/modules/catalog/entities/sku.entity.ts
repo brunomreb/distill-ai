@@ -31,7 +31,7 @@ export class Sku extends BaseEntity {
   @Column({ type: 'int', nullable: true })
   cost_minor: number | null;
 
-  @Column({ type: 'text', default: 'GBP' })
+  @Column({ type: 'text', default: 'EUR' })
   currency: string;
 
   @Column({ type: 'smallint', nullable: true })

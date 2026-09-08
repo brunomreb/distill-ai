@@ -37,7 +37,7 @@ export function SearchSkusDocs(): MethodDecorator {
                 name: { type: 'string', example: 'M6 Socket Cap Screw Zinc Plated' },
                 description: { type: 'string', nullable: true },
                 base_price_minor: { type: 'number', example: 1800 },
-                currency: { type: 'string', example: 'NGN' },
+                currency: { type: 'string', example: 'EUR' },
                 lead_time_days: { type: 'number', nullable: true, example: 3 },
                 score: { type: 'number', example: 0.42 },
               },

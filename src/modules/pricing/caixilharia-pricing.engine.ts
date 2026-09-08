@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { STRATOS_CURRENCY } from '@common/constants/currency.constants';
 import type { Sku } from '@modules/catalog/entities/sku.entity';
 import type { CaixilhariaExtractionV1 } from '@modules/extraction/schemas/extraction-v1.schema';
 import type { PricingRule } from './entities/pricing-rule.entity';
@@ -378,6 +379,9 @@ export function priceCaixilhariaQuote(
     .filter((sku): sku is Sku => sku !== undefined);
   const currencies = new Set(relevantSkus.map((sku) => sku.currency));
   if (currencies.size > 1) missingRules.push('catalog.currency_mismatch');
+  if (relevantSkus.some((sku) => sku.currency !== STRATOS_CURRENCY)) {
+    missingRules.push('catalog.currency_must_be_eur');
+  }
   const leadTimes = relevantSkus
     .map((sku) => sku.lead_time_days)
     .filter((days): days is number => days !== null);
@@ -389,7 +393,7 @@ export function priceCaixilhariaQuote(
     taxMinor,
     totalMinor: taxableMinor + taxMinor,
     leadTimeDays: leadTimes.length > 0 ? Math.max(...leadTimes) : null,
-    currency: relevantSkus[0]?.currency ?? 'EUR',
+    currency: STRATOS_CURRENCY,
     totalAreaM2,
     blocked: unique(missingRules).length > 0,
     missingRules: unique(missingRules),

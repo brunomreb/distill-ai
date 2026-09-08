@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { EntityManager, In } from 'typeorm';
 import { LineItem } from '@modules/catalog/entities/line-item.entity';
 import { Quote } from '@modules/quotes/entities/quote.entity';
@@ -9,6 +9,7 @@ import { QuotePricingService } from './quote-pricing.service';
 import { PRICING_BLOCKED_FLAG } from './pricing.constants';
 import { MANUAL_OVERRIDE_FLAG } from '@modules/catalog/line-item-flags.constants';
 import type { PricedLine, PricingLineInput } from './interfaces/pricing.interfaces';
+import { isEuroCurrency, STRATOS_CURRENCY } from '@common/constants/currency.constants';
 
 /** Server-confirmed quote totals from a recompute. `blocked` is the EC-04 no-applicable-rule case. */
 export interface RecomputeResult {
@@ -73,6 +74,12 @@ export class QuoteRecomputeService {
       return EMPTY_RESULT;
     }
 
+    if (priceable.some((line) => !isEuroCurrency(line.matched_sku!.currency))) {
+      throw new BadRequestException(
+        'Não é possível recalcular: todos os produtos têm de usar EUR.',
+      );
+    }
+
     const autoInputs: PricingLineInput[] = priceable
       .filter((li) => !isOverridden(li))
       .map((li) => ({
@@ -121,7 +128,7 @@ export class QuoteRecomputeService {
     const flagsById = new Map<string, string[]>(
       priceable.map((li) => [li.id, Array.isArray(li.flags) ? [...(li.flags as string[])] : []]),
     );
-    const currency = priceable[0].matched_sku?.currency ?? 'GBP';
+    const currency = STRATOS_CURRENCY;
 
     await this.clearLinePricing(em, nonPriceable);
     await this.persistLinePrices(em, allLines, blockedLineIds, flagsById);

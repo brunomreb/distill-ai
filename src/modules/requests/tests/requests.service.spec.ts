@@ -58,7 +58,7 @@ describe('RequestsService', () => {
           subtotal_minor: 100000,
           discount_minor: 5000,
           total_minor: 95000,
-          currency: 'NGN',
+          currency: 'EUR',
           lead_time_days: 3,
         },
         lines: [
@@ -154,7 +154,7 @@ describe('RequestsService', () => {
         matched_sku: { sku_code: 'SKU-061', name: 'M6 Hex Bolt' },
         flags: ['close_tie'],
       });
-      expect(detail.quote).toMatchObject({ total_minor: 95000, currency: 'NGN' });
+      expect(detail.quote).toMatchObject({ total_minor: 95000, currency: 'EUR' });
       expect(detail.quote?.lines[0]).toMatchObject({ amount_minor: 95000 });
     });
 

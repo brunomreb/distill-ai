@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, EntityManager } from 'typeorm';
 import type { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { Sku } from './entities/sku.entity';
 import { EmbeddingsClientService } from './embeddings-client.service';
+import { isEuroCurrency, STRATOS_CURRENCY } from '@common/constants/currency.constants';
 
 /** One catalog SKU returned by the manual search in the re-map drawer (US-E6-2). */
 export interface SkuSearchResult {
@@ -103,13 +104,16 @@ export class CatalogService {
     input: AdminSkuInput,
     entityManager?: EntityManager,
   ): Promise<Sku> {
+    if (!isEuroCurrency(input.currency)) {
+      throw new BadRequestException('A moeda tem de ser EUR.');
+    }
     const manager = entityManager ?? this.dataSource.manager;
     const saved = await manager.save(Sku, {
       ...input,
       org_id: orgId,
       sku_code: input.sku_code.trim().toUpperCase(),
       name: input.name.trim(),
-      currency: input.currency.trim().toUpperCase(),
+      currency: STRATOS_CURRENCY,
       attributes: input.attributes ?? {},
       active: input.active ?? true,
       embedding_status: 'pending',
@@ -126,11 +130,14 @@ export class CatalogService {
     patch: AdminSkuPatch,
     entityManager?: EntityManager,
   ): Promise<Sku | null> {
+    if (patch.currency !== undefined && !isEuroCurrency(patch.currency)) {
+      throw new BadRequestException('A moeda tem de ser EUR.');
+    }
     const manager = entityManager ?? this.dataSource.manager;
     const normalized: AdminSkuPatch = { ...patch };
     if (patch.sku_code !== undefined) normalized.sku_code = patch.sku_code.trim().toUpperCase();
     if (patch.name !== undefined) normalized.name = patch.name.trim();
-    if (patch.currency !== undefined) normalized.currency = patch.currency.trim().toUpperCase();
+    if (patch.currency !== undefined) normalized.currency = STRATOS_CURRENCY;
     if (patch.attributes === null) normalized.attributes = {};
 
     const result = await manager.update(

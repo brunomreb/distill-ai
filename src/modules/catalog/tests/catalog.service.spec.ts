@@ -109,6 +109,24 @@ describe('CatalogService admin CRUD', () => {
     );
   });
 
+  it('rejects a non-EUR SKU before writing to the catalog', async () => {
+    const { service, manager } = makeAdminService();
+
+    await expect(
+      service.createAdmin(sku.org_id, {
+        sku_code: 'AVAC-NGN',
+        name: 'Produto inválido',
+        description: null,
+        attributes: {},
+        base_price_minor: 125000,
+        cost_minor: null,
+        currency: 'NGN',
+        lead_time_days: null,
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(manager.save).not.toHaveBeenCalled();
+  });
+
   it('normalizes an empty UI attributes field to an empty JSON object', async () => {
     const { service, manager } = makeAdminService();
 
@@ -142,6 +160,15 @@ describe('CatalogService admin CRUD', () => {
     expect(manager.findOne).toHaveBeenCalledWith(expect.anything(), {
       where: { id: sku.id, org_id: sku.org_id },
     });
+  });
+
+  it('rejects a non-EUR currency patch before updating the catalog', async () => {
+    const { service, manager } = makeAdminService();
+
+    await expect(
+      service.updateAdmin(sku.org_id, sku.id, { currency: 'GBP' }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(manager.update).not.toHaveBeenCalled();
   });
 
   it('returns null when an update targets a SKU outside the caller organization', async () => {

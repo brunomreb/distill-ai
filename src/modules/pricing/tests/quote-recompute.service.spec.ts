@@ -32,7 +32,7 @@ function makeLine(overrides: Partial<FakeLine> = {}): FakeLine {
     raw_text: 'bolts',
     quantity: 500,
     matched_sku_id: 'sku-1',
-    matched_sku: { name: 'M6 bolt', base_price_minor: 1000, lead_time_days: 7, currency: 'GBP' },
+    matched_sku: { name: 'M6 bolt', base_price_minor: 1000, lead_time_days: 7, currency: 'EUR' },
     unit_price_minor: null,
     flags: [],
     ...overrides,
@@ -72,12 +72,9 @@ function setup(
     }),
   };
 
-  const svc = new QuoteRecomputeService(
-    pricingRules as never,
-    new QuotePricingService(),
-    quotes as never,
-  );
-  return { svc, em, updateCalls, deleteCalls, replaceCalls };
+  const pricing = new QuotePricingService();
+  const svc = new QuoteRecomputeService(pricingRules as never, pricing, quotes as never);
+  return { svc, em, pricing, updateCalls, deleteCalls, replaceCalls };
 }
 
 describe('QuoteRecomputeService', () => {
@@ -112,6 +109,19 @@ describe('QuoteRecomputeService', () => {
       request_id: 'req-1',
       org_id: 'org-1',
     });
+  });
+
+  it('rejects a non-EUR SKU before recomputing any monetary amount', async () => {
+    const { svc, em, pricing, replaceCalls } = setup([
+      makeLine({ matched_sku: { ...makeLine().matched_sku!, currency: 'NGN' } }),
+    ]);
+    const priceQuote = vi.spyOn(pricing, 'priceQuote');
+
+    await expect(svc.recompute('req-1', 'org-1', em as never)).rejects.toMatchObject({
+      status: 400,
+    });
+    expect(priceQuote).not.toHaveBeenCalled();
+    expect(replaceCalls).toHaveLength(0);
   });
 
   it('EC-04: blocks and flags the line when the org has no applicable pricing rule', async () => {

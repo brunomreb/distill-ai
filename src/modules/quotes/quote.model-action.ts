@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, In, IsNull, Repository } from 'typeorm';
 import { AbstractModelAction } from '@common/model-action/abstract.model-action';
 import { Quote } from './entities/quote.entity';
 import { QuoteLineItem } from './entities/quote-line-item.entity';
 import { QuoteStatus } from './enums/quote-status.enum';
+import { isEuroCurrency, STRATOS_CURRENCY } from '@common/constants/currency.constants';
 
 /** One priced line to persist on a quote. All money values are minor units. */
 export interface QuoteLineInput {
@@ -55,6 +56,9 @@ export class QuoteModelAction extends AbstractModelAction<Quote> {
    * price node after a crash-resume recomputes the same quote without duplicating rows (EC-03).
    */
   async replaceForRequest(input: ReplaceQuoteInput, transaction?: EntityManager): Promise<Quote> {
+    if (!isEuroCurrency(input.currency)) {
+      throw new BadRequestException('A moeda do orçamento tem de ser EUR.');
+    }
     const replace = async (em: EntityManager): Promise<Quote> => {
       const existing = await em.find(Quote, { where: { request_id: input.requestId } });
       if (existing.length > 0) {
@@ -70,7 +74,7 @@ export class QuoteModelAction extends AbstractModelAction<Quote> {
         subtotal_minor: input.subtotalMinor,
         discount_minor: input.discountMinor,
         total_minor: input.totalMinor,
-        currency: input.currency,
+        currency: STRATOS_CURRENCY,
         lead_time_days: input.leadTimeDays,
       });
 

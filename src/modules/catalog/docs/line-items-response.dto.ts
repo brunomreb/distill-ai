@@ -22,7 +22,7 @@ export class CandidateResponseDto {
   @ApiProperty({ example: 125000 })
   base_price_minor: number;
 
-  @ApiProperty({ example: 'GBP' })
+  @ApiProperty({ example: 'EUR' })
   currency: string;
 
   @ApiProperty({ nullable: true, example: 5 })

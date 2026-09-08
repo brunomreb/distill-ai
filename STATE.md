@@ -122,15 +122,15 @@ Em `DEMO_MODE`, fixtures determinísticas substituem apenas a chamada ao provide
 
 | Verificação                 | Resultado                                                                                               |
 | --------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Testes API/worker           | PASS — 89 ficheiros; 765 testes; 1 `todo`                                                               |
-| Testes client               | PASS — 61 ficheiros; 525 testes                                                                         |
+| Testes API/worker           | PASS — 90 ficheiros; 775 testes; 1 `todo`                                                               |
+| Testes client               | PASS — 62 ficheiros; 527 testes                                                                         |
 | Lint API e build API/worker | PASS                                                                                                    |
 | Lint e build client         | PASS                                                                                                    |
 | Migração Fase 3             | PASS — rollback/reaplicação em PostgreSQL real; dados das organizações preservados                      |
 | Seed caixilharia            | PASS — 10 SKUs, 12 regras, branding e IVA 0,23                                                          |
 | E2E API/worker em Docker    | PASS — ingestão, extração, pricing, aprovação e PDF                                                     |
 | Isolamento multi-tenant     | PASS — pedido caixilharia consultado como AVAC devolve 404                                              |
-| E2E no browser              | PASS — registo com 5 orçamentos, detalhe com linhas/totais navegável, APIs 200 e zero erros de consola  |
+| E2E no browser              | PASS — registo e detalhe com linhas/totais navegáveis, APIs 200 e zero erros de consola                  |
 | CRUD admin real             | PASS — criar/editar/desativar produto e criar/desativar regra pela API Docker                           |
 | Import/worker real          | PASS — CSV PT, `149,90 € → 14 990`, estado `pending → unavailable` em demo via worker pós-commit        |
 | Branding real               | PASS — upload PNG de 9 117 bytes e leitura autenticada byte-a-byte idêntica; `logo_url` manual = 400    |
@@ -148,6 +148,10 @@ Em `DEMO_MODE`, fixtures determinísticas substituem apenas a chamada ao provide
 - Áreas auxiliares herdadas do upstream ainda serão progressivamente localizadas; o percurso comercial dos dois verticais está em PT-PT.
 
 ## Histórico das fases
+
+### Correção pós-Fase 3 — EUR como invariante
+
+Concluída em 2026-09-08. A moeda é agora exclusivamente `EUR` em todos os verticais e também no percurso genérico herdado: catálogo manual/importado, motores, recálculo, persistência, defaults e constraints PostgreSQL. Os fixtures NGN descartáveis do upstream foram removidos das organizações demo em vez de serem falsamente relabelados como euros. Qualquer dado não-EUR numa organização não-demo faz a migração falhar fechado e exige uma política explícita de arquivo/conversão. O Claude Code tornou `EUR (€)` não editável no frontend; o Codex implementou e validou as barreiras de backend/BD.
 
 ### Fase 3 — editar sem código
 

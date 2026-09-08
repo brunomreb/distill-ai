@@ -25,7 +25,7 @@ function buildQuote(status: QuoteStatus, overrides: Record<string, unknown> = {}
     subtotal_minor: 1000,
     discount_minor: 0,
     total_minor: 1000,
-    currency: 'GBP',
+    currency: 'EUR',
     lead_time_days: 5,
     pdf_storage_url: null,
     pdf_generated_at: null,

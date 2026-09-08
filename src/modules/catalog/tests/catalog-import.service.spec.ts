@@ -92,6 +92,22 @@ describe('CatalogImportService', () => {
     expect(repository.save).not.toHaveBeenCalled();
   });
 
+  it('rejects catalog rows in currencies other than EUR', async () => {
+    const { service, repository } = setup();
+    const result = await service.import(ORG_ID, {
+      originalname: 'catalogo.csv',
+      mimetype: 'text/csv',
+      buffer: Buffer.from(
+        'sku_code,name,base_price_minor,currency\nLEGACY-001,Produto legacy,125000,NGN',
+      ),
+    });
+
+    expect(result).toMatchObject({ created: 0, updated: 0, rejected: 1 });
+    expect(result.errors[0]).toMatchObject({ row: 2 });
+    expect(result.errors[0].message).toContain('EUR');
+    expect(repository.save).not.toHaveBeenCalled();
+  });
+
   it('defers re-embedding to a durable worker job until the request transaction commits', async () => {
     const { repository, dataSource, embeddings } = setup();
     const queue = { add: vi.fn().mockResolvedValue({ id: 'bull-1' }) };

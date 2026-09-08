@@ -25,7 +25,7 @@ function makeCandidate(rank: number, score: number) {
       name: `Item ${rank}`,
       description: null,
       base_price_minor: 10000 * rank,
-      currency: 'GBP',
+      currency: 'EUR',
       lead_time_days: null,
     },
   };
@@ -77,7 +77,7 @@ describe('LineItemsService.getCandidates', () => {
       name: 'Item 1',
       description: null,
       base_price_minor: 10000,
-      currency: 'GBP',
+      currency: 'EUR',
     });
     expect(result[1].rank).toBe(2);
   });

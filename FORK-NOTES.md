@@ -203,3 +203,15 @@ Não foram feitas alterações de produto nessa fase.
 - Colunas aditivas: `organizations.demo_enabled`; `skus.active`, estado/erro de embedding; metadados/claim de entrega em `quotes`; índice org/active e constraint de estado.
 - Rollback: remove apenas campos/índice/constraint da Fase 3; não elimina organizações nem dados preexistentes.
 - Validação: rollback e reaplicação numa base PostgreSQL real, seguidos de build Docker e arranque saudável de API/client/worker.
+
+## 2026-09-08 — Correção pós-Fase 3: EUR exclusivo
+
+### Moeda como invariante de domínio
+
+- Motivo: o seed upstream continha 112 SKUs e quatro orçamentos demo em NGN; além de aparecerem no registo, o percurso genérico podia somar minor units de moedas diferentes e usar a moeda da primeira linha.
+- Ficheiros principais: `src/common/constants/currency.constants.ts`, catálogo/admin/import, motores AVAC/caixilharia, `price.node.ts`, `quote-recompute.service.ts`, `quote.model-action.ts`, entidades e migration `1782620000000-EnforceEuroCurrency.ts`.
+- Divergência: Stratos aceita apenas `EUR`; moeda não é input do LLM nem uma escolha do utilizador. As barreiras existem antes do cálculo, na persistência e na BD (`CHECK (currency = 'EUR')`).
+- Dados legacy: SKUs, matches e quotes não-EUR são removidos apenas em organizações `demo_enabled`; os valores não são relabelados/convertidos implicitamente. A migração aborta se encontrar moeda não-EUR num tenant não-demo.
+- Frontend: Claude Code removeu o campo editável de moeda do formulário de produto e fixou `EUR (€)`/payload `EUR`; fixtures visuais NGN/GBP foram eliminadas.
+- Impacto no merge: moderado mas localizado. Os migrations/seeds upstream permanecem intactos e a correção é feita por uma migration aditiva, facilitando futuros merges.
+- Testes: rejeição em CRUD/import/persistência, fail-closed antes da aritmética e nos dois motores verticais, schema/defaults de BD; API 90 ficheiros/775 testes + 1 `todo`, client 62/527, builds e lint verdes.

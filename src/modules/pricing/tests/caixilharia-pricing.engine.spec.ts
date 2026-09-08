@@ -266,6 +266,16 @@ describe('priceCaixilhariaQuote', () => {
     expect(result.taxMinor).toBe(27655);
     expect(result.totalMinor).toBe(488570);
   });
+
+  it('fails closed when a selected catalog SKU is not denominated in EUR', () => {
+    const nonEuroSkus = skus.map((item) => ({ ...item, currency: 'NGN' }) as Sku);
+
+    const result = priceCaixilhariaQuote(extraction, rules, nonEuroSkus);
+
+    expect(result.blocked).toBe(true);
+    expect(result.missingRules).toContain('catalog.currency_must_be_eur');
+    expect(result.currency).toBe('EUR');
+  });
 });
 
 function sku(id: string, code: string, name: string, price: number): Sku {

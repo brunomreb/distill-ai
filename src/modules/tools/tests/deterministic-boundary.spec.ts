@@ -91,7 +91,7 @@ describe('deterministic boundary (US-E4-3)', () => {
         name: 'Widget',
         base_price_minor: 1000,
         lead_time_days: 7,
-        currency: 'GBP',
+        currency: 'EUR',
         cost_minor: 950,
       },
       unit_price_minor: 900,

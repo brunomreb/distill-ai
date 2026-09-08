@@ -1,11 +1,11 @@
 import {
   IsBoolean,
+  Equals,
   IsInt,
   IsNotEmpty,
   IsObject,
   IsOptional,
   IsString,
-  Length,
   Max,
   MaxLength,
   Min,
@@ -41,7 +41,7 @@ export class CreateAdminSkuDto {
   cost_minor: number | null;
 
   @IsString()
-  @Length(3, 3)
+  @Equals('EUR', { message: 'A moeda tem de ser EUR.' })
   currency: string;
 
   @IsOptional()
@@ -89,7 +89,7 @@ export class UpdateAdminSkuDto {
 
   @IsOptional()
   @IsString()
-  @Length(3, 3)
+  @Equals('EUR', { message: 'A moeda tem de ser EUR.' })
   currency?: string;
 
   @IsOptional()

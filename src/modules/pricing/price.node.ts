@@ -23,6 +23,7 @@ import type { PricedQuote, PricingLineInput } from './interfaces/pricing.interfa
 import { priceAvacQuote, type AvacPricedQuote } from './avac-pricing.engine';
 import { priceCaixilhariaQuote, type CaixilhariaPricedQuote } from './caixilharia-pricing.engine';
 import { OrgBranding } from '@modules/organizations/entities/org-branding.entity';
+import { isEuroCurrency, STRATOS_CURRENCY } from '@common/constants/currency.constants';
 
 /**
  * The price node (US-E4-1 FR-2). It is a PipelineNode with NO ToolRegistry injected: the
@@ -80,6 +81,16 @@ export class PriceNode implements PipelineNode {
       return { kind: 'advance', next: this.nextNode };
     }
 
+    // Currency is a catalog invariant, never an LLM or first-line decision. Refuse the entire
+    // quote before adding minor-unit amounts if stale/imported data violates it.
+    if (priceable.some((line) => !isEuroCurrency(line.matched_sku!.currency))) {
+      await this.quotes.deleteForRequest(requestId);
+      await this.emitCurrencyInvalid(orgId, requestId);
+      await this.emitCompleted(orgId, requestId, null, 0, true);
+      this.logger.warn({ event: 'pricing_currency_invalid', requestId });
+      return { kind: 'advance', next: this.nextNode };
+    }
+
     const inputs: PricingLineInput[] = priceable.map((li) => ({
       lineItemId: li.id,
       skuId: li.matched_sku_id as string,
@@ -96,7 +107,7 @@ export class PriceNode implements PipelineNode {
     const flagsById = new Map<string, string[]>(
       priceable.map((li) => [li.id, Array.isArray(li.flags) ? [...(li.flags as string[])] : []]),
     );
-    const currency = priceable[0].matched_sku?.currency ?? 'GBP';
+    const currency = STRATOS_CURRENCY;
 
     const quote = await this.dataSource.transaction(async (em) => {
       await this.persistLinePrices(em, priced, flagsById);
@@ -254,6 +265,22 @@ export class PriceNode implements PipelineNode {
         orgId,
         requestId,
         attributes: { stage: 'price', reason: StageErrorReason.PRICING_RULE_MISSING },
+      });
+    } catch (err) {
+      this.logger.error(`Failed to emit stage.error for request ${requestId}`, err);
+    }
+  }
+
+  private async emitCurrencyInvalid(orgId: string, requestId: string): Promise<void> {
+    try {
+      await this.events.emit({
+        eventName: 'stage.error',
+        orgId,
+        requestId,
+        attributes: {
+          stage: 'price',
+          reason: StageErrorReason.CATALOG_CURRENCY_MUST_BE_EUR,
+        },
       });
     } catch (err) {
       this.logger.error(`Failed to emit stage.error for request ${requestId}`, err);

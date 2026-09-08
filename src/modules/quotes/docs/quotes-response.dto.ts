@@ -45,7 +45,7 @@ export class QuoteDetailResponseDto {
   @ApiProperty({ example: 95000, description: 'Minor units' })
   total_minor: number;
 
-  @ApiProperty({ example: 'NGN' })
+  @ApiProperty({ example: 'EUR' })
   currency: string;
 
   @ApiProperty({ nullable: true, example: 3 })

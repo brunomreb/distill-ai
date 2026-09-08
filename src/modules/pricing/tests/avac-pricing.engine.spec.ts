@@ -116,6 +116,16 @@ describe('priceAvacQuote', () => {
     expect(result.taxMinor).toBe(40562);
     expect(result.totalMinor).toBe(716600);
   });
+
+  it('fails closed when a selected catalog SKU is not denominated in EUR', () => {
+    const nonEuroSkus = skus.map((item) => ({ ...item, currency: 'NGN' }) as Sku);
+
+    const result = priceAvacQuote(extraction, rules, nonEuroSkus);
+
+    expect(result.blocked).toBe(true);
+    expect(result.missingRules).toContain('catalog.currency_must_be_eur');
+    expect(result.currency).toBe('EUR');
+  });
 });
 
 function sku(id: string, code: string, name: string, price: number): Sku {
