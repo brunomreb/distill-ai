@@ -60,6 +60,28 @@ describe('OrgProvider', () => {
     expect(screen.getByText(/a validar organização/i)).toBeInTheDocument();
   });
 
+  it('shows a retryable PT-PT error instead of staying stuck on the loading state forever', async () => {
+    const refetch = vi.fn();
+    mockUseOrganizations.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      refetch,
+    });
+    const user = userEvent.setup();
+
+    renderConsumer();
+
+    expect(screen.queryByTestId('selected')).not.toBeInTheDocument();
+    expect(screen.queryByText(/a validar organização/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      /não foi possível carregar as organizações/i,
+    );
+
+    await user.click(screen.getByRole('button', { name: /tentar novamente/i }));
+    expect(refetch).toHaveBeenCalledOnce();
+  });
+
   it('starts with no org selected when nothing is stored', () => {
     renderConsumer();
     expect(screen.getByTestId('selected')).toHaveTextContent('none');

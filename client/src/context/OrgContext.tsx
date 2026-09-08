@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useOrganizations } from '../api/organizations';
 import type { Organization } from '../api/organizations';
 import { setDemoOrgId } from '../api/demoOrg';
+import { ErrorBanner } from '../components/inbox/ErrorBanner';
 
 export const STORAGE_KEY = 'stratos.demoOrgId';
 
@@ -51,9 +52,20 @@ setDemoOrgId(readStoredOrgId());
  * X-Demo-Org-Id header.
  */
 export function OrgProvider({ children }: { children: ReactNode }) {
-  const { data: organizations, isLoading } = useOrganizations();
+  const { data: organizations, isLoading, isError, refetch } = useOrganizations();
   const queryClient = useQueryClient();
   const [rawSelectedOrgId, setRawSelectedOrgId] = useState<string | null>(readStoredOrgId);
+
+  if (isError) {
+    return (
+      <div className="flex h-full items-center justify-center px-6 py-6">
+        <ErrorBanner
+          message="Não foi possível carregar as organizações."
+          onRetry={() => void refetch()}
+        />
+      </div>
+    );
+  }
 
   if (isLoading || !organizations) {
     return (

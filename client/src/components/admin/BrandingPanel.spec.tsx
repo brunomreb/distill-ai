@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { act } from 'react';
 import userEvent from '@testing-library/user-event';
 import { BrandingPanel } from './BrandingPanel';
 import type { Branding } from '../../api/branding';
@@ -9,12 +10,14 @@ const {
   mockUseUpdateBranding,
   mockUploadMutate,
   mockUseUploadBrandingLogo,
+  mockUseBrandingLogo,
 } = vi.hoisted(() => ({
   mockUseBranding: vi.fn(),
   mockMutate: vi.fn(),
   mockUseUpdateBranding: vi.fn(),
   mockUploadMutate: vi.fn(),
   mockUseUploadBrandingLogo: vi.fn(),
+  mockUseBrandingLogo: vi.fn(),
 }));
 
 vi.mock('../../api/branding', async (importOriginal) => {
@@ -24,8 +27,15 @@ vi.mock('../../api/branding', async (importOriginal) => {
     useBranding: () => mockUseBranding(),
     useUpdateBranding: () => mockUseUpdateBranding(),
     useUploadBrandingLogo: () => mockUseUploadBrandingLogo(),
+    useBrandingLogo: (options: Parameters<typeof actual.useBrandingLogo>[0]) =>
+      mockUseBrandingLogo(options),
   };
 });
+
+// jsdom has no object-URL implementation; the component must still get a stable string back.
+const createObjectURL = vi.fn(() => 'blob:mock-logo-url');
+const revokeObjectURL = vi.fn();
+vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL });
 
 const branding: Branding = {
   company_name: 'Clima Atlântico',
@@ -64,8 +74,12 @@ describe('BrandingPanel', () => {
       isError: false,
       error: null,
     });
+    mockUseBrandingLogo.mockReturnValue({ data: undefined, isLoading: false, isError: false });
     mockMutate.mockReset();
     mockUploadMutate.mockReset();
+    mockUseBrandingLogo.mockClear();
+    createObjectURL.mockClear();
+    revokeObjectURL.mockClear();
   });
 
   it('shows a loading state', () => {
@@ -137,8 +151,12 @@ describe('BrandingPanel — logo upload', () => {
       isError: false,
       error: null,
     });
+    mockUseBrandingLogo.mockReturnValue({ data: undefined, isLoading: false, isError: false });
     mockMutate.mockReset();
     mockUploadMutate.mockReset();
+    mockUseBrandingLogo.mockClear();
+    createObjectURL.mockClear();
+    revokeObjectURL.mockClear();
   });
 
   it('shows a placeholder when there is no logo yet', () => {
@@ -152,21 +170,43 @@ describe('BrandingPanel — logo upload', () => {
 
     expect(screen.getByText(/sem logo/i)).toBeInTheDocument();
     expect(screen.queryByRole('img', { name: /logótipo/i })).not.toBeInTheDocument();
+    // logo_url is a private object-store key — never fetched when there's nothing to show.
+    expect(mockUseBrandingLogo).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }));
   });
 
-  it('shows the current logo image when one is set', () => {
+  it('never uses the raw logo_url as the img src — fetches the blob and renders an object URL', () => {
     mockUseBranding.mockReturnValue({
-      data: { ...branding, logo_url: 'https://cdn.example/logos/org-1.png' },
+      data: { ...branding, logo_url: 'org-store-keys/logo-1' },
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
     });
+    const blob = new Blob(['PNGDATA'], { type: 'image/png' });
+    mockUseBrandingLogo.mockReturnValue({ data: blob, isLoading: false, isError: false });
+
     renderPanel();
 
-    expect(screen.getByRole('img', { name: /logótipo/i })).toHaveAttribute(
-      'src',
-      'https://cdn.example/logos/org-1.png',
-    );
+    expect(mockUseBrandingLogo).toHaveBeenCalledWith(expect.objectContaining({ enabled: true }));
+    expect(createObjectURL).toHaveBeenCalledWith(blob);
+    const img = screen.getByRole('img', { name: /logótipo/i });
+    expect(img).toHaveAttribute('src', 'blob:mock-logo-url');
+    expect(img).not.toHaveAttribute('src', 'org-store-keys/logo-1');
+  });
+
+  it('revokes the object URL on unmount to avoid leaking it', () => {
+    mockUseBranding.mockReturnValue({
+      data: { ...branding, logo_url: 'org-store-keys/logo-1' },
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+    const blob = new Blob(['PNGDATA'], { type: 'image/png' });
+    mockUseBrandingLogo.mockReturnValue({ data: blob, isLoading: false, isError: false });
+
+    const { unmount } = renderPanel();
+    unmount();
+
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock-logo-url');
   });
 
   it('uploads a valid PNG file', async () => {
@@ -183,7 +223,34 @@ describe('BrandingPanel — logo upload', () => {
     const input = screen.getByLabelText(/carregar logótipo/i) as HTMLInputElement;
     await user.upload(input, file);
 
-    expect(mockUploadMutate).toHaveBeenCalledWith(file);
+    expect(mockUploadMutate.mock.calls[0][0]).toBe(file);
+  });
+
+  it('bumps the cache-bust key and refetches after a successful upload', async () => {
+    mockUseBranding.mockReturnValue({
+      data: { ...branding, logo_url: 'org-store-keys/logo-1' },
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+    mockUseBrandingLogo.mockReturnValue({
+      data: new Blob(['PNGDATA'], { type: 'image/png' }),
+      isLoading: false,
+      isError: false,
+    });
+    const user = userEvent.setup();
+    renderPanel();
+
+    expect(mockUseBrandingLogo).toHaveBeenLastCalledWith(expect.objectContaining({ cacheBust: 0 }));
+
+    const file = new File([new Uint8Array(1024)], 'logo.png', { type: 'image/png' });
+    const input = screen.getByLabelText(/carregar logótipo/i) as HTMLInputElement;
+    await user.upload(input, file);
+
+    const onSuccess = mockUploadMutate.mock.calls[0][1]?.onSuccess as () => void;
+    act(() => onSuccess());
+
+    expect(mockUseBrandingLogo).toHaveBeenLastCalledWith(expect.objectContaining({ cacheBust: 1 }));
   });
 
   // fireEvent (not userEvent.upload) so the file reaches onChange regardless of user-event's own

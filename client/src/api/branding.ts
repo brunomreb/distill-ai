@@ -20,6 +20,9 @@ export type BrandingWritePayload = Partial<Branding>;
 
 export const brandingKeys = {
   all: () => ['organizations', 'current', 'branding'] as const,
+  /** Nests under all() (prefix match) so invalidating the branding query after a save or a logo
+   * upload also invalidates this one — no separate invalidation call needed at the call site. */
+  logo: (cacheBust = 0) => [...brandingKeys.all(), 'logo', cacheBust] as const,
 };
 
 export async function fetchBranding(): Promise<Branding> {
@@ -71,5 +74,26 @@ export function useUploadBrandingLogo() {
   return useMutation({
     mutationFn: uploadBrandingLogo,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: brandingKeys.all() }),
+  });
+}
+
+/** logo_url is a private internal object-store key, never a browsable URL — the logo can only be
+ * fetched through this authenticated endpoint, as a blob the UI turns into an object URL. */
+export async function fetchBrandingLogo(cacheBust?: number): Promise<Blob> {
+  const res = await client.get<Blob>('/organizations/current/branding/logo', {
+    responseType: 'blob',
+    params: cacheBust ? { v: cacheBust } : undefined,
+  });
+  return res.data;
+}
+
+/** `cacheBust` changes the query key (and the request URL) so a post-upload refetch is a real,
+ * distinct network request rather than one an intermediate HTTP cache could shortcut. */
+export function useBrandingLogo(options: { enabled: boolean; cacheBust?: number }) {
+  const cacheBust = options.cacheBust ?? 0;
+  return useQuery({
+    queryKey: brandingKeys.logo(cacheBust),
+    queryFn: () => fetchBrandingLogo(cacheBust),
+    enabled: options.enabled,
   });
 }

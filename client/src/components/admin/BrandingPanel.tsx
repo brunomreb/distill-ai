@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   useBranding,
+  useBrandingLogo,
   useUpdateBranding,
   useUploadBrandingLogo,
   validateLogoFile,
@@ -12,15 +13,31 @@ import { rateToPercent, percentToRate } from '../../lib/euroMinor';
 import { GENERIC_ERROR } from '../../lib/errorMessages';
 
 interface LogoUploaderProps {
-  logoUrl: string | null;
+  hasLogo: boolean;
 }
 
 /** Logo is its own upload endpoint, decoupled from the rest of the form's "edit then Guardar"
  * flow: it uploads (and shows its own pending/error state) the instant a valid file is picked,
- * with no free-text field for the URL — logo_url stays a persisted, server-owned key. */
-function LogoUploader({ logoUrl }: LogoUploaderProps) {
+ * with no free-text field for the URL — logo_url stays a persisted, server-owned key. The image
+ * itself is never rendered from that key (it's a private object-store path, not a browsable URL):
+ * it's fetched as a blob through the authenticated endpoint and shown via an object URL. */
+function LogoUploader({ hasLogo }: LogoUploaderProps) {
   const mutation = useUploadBrandingLogo();
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [cacheBust, setCacheBust] = useState(0);
+  const logoQuery = useBrandingLogo({ enabled: hasLogo, cacheBust });
+  // Object URLs are a pure function of the blob, so it's computed directly in render rather than
+  // stored via an effect + setState (which would cost an extra render); the effect below only
+  // handles the one real side effect, revoking the previous URL once it's no longer displayed.
+  const objectUrl = useMemo(
+    () => (logoQuery.data ? URL.createObjectURL(logoQuery.data) : null),
+    [logoQuery.data],
+  );
+
+  useEffect(() => {
+    if (!objectUrl) return;
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [objectUrl]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -33,7 +50,9 @@ function LogoUploader({ logoUrl }: LogoUploaderProps) {
       return;
     }
     setValidationError(null);
-    mutation.mutate(file);
+    // A distinct query key (and request URL) is needed on top of the query-cache invalidation the
+    // upload mutation already does, so the refetch can't be served by an intermediate HTTP cache.
+    mutation.mutate(file, { onSuccess: () => setCacheBust((n) => n + 1) });
   }
 
   const errorMessage = validationError ?? (mutation.isError ? GENERIC_ERROR : null);
@@ -42,9 +61,9 @@ function LogoUploader({ logoUrl }: LogoUploaderProps) {
     <div className="flex flex-col gap-2">
       <span className="text-xs font-medium text-muted">Logótipo</span>
       <div className="flex items-center gap-3">
-        {logoUrl ? (
+        {objectUrl ? (
           <img
-            src={logoUrl}
+            src={objectUrl}
             alt="Logótipo da organização"
             className="h-12 w-12 rounded-lg border border-border bg-canvas object-contain"
           />
@@ -249,7 +268,7 @@ export function BrandingPanel() {
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-sm font-semibold text-slate-900">Branding</h2>
-      <LogoUploader logoUrl={branding.logo_url} />
+      <LogoUploader hasLogo={Boolean(branding.logo_url)} />
       <BrandingForm
         initial={branding}
         onSubmit={(payload) => mutation.mutate(payload)}

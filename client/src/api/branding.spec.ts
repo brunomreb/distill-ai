@@ -10,6 +10,8 @@ import {
   useUpdateBranding,
   uploadBrandingLogo,
   useUploadBrandingLogo,
+  fetchBrandingLogo,
+  useBrandingLogo,
   validateLogoFile,
   MAX_LOGO_BYTES,
 } from './branding';
@@ -130,6 +132,90 @@ describe('useUploadBrandingLogo', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: brandingKeys.all() });
+  });
+});
+
+describe('brandingKeys.logo', () => {
+  it('nests under all() so invalidating all() also invalidates the logo query (prefix match)', () => {
+    expect(brandingKeys.logo(3)).toEqual([...brandingKeys.all(), 'logo', 3]);
+  });
+
+  it('defaults the cache-bust segment to 0', () => {
+    expect(brandingKeys.logo()).toEqual([...brandingKeys.all(), 'logo', 0]);
+  });
+});
+
+describe('fetchBrandingLogo', () => {
+  beforeEach(() => mockGet.mockReset());
+
+  it('GETs the authenticated logo endpoint as a blob, never the raw logo_url', async () => {
+    const blob = new Blob(['PNGDATA'], { type: 'image/png' });
+    mockGet.mockResolvedValue({ data: blob });
+
+    const result = await fetchBrandingLogo();
+
+    expect(mockGet).toHaveBeenCalledWith('/organizations/current/branding/logo', {
+      responseType: 'blob',
+      params: undefined,
+    });
+    expect(result).toBe(blob);
+  });
+
+  it('appends a cache-busting query param when provided (post-upload refetch)', async () => {
+    mockGet.mockResolvedValue({ data: new Blob() });
+
+    await fetchBrandingLogo(7);
+
+    expect(mockGet).toHaveBeenCalledWith('/organizations/current/branding/logo', {
+      responseType: 'blob',
+      params: { v: 7 },
+    });
+  });
+});
+
+describe('useBrandingLogo', () => {
+  beforeEach(() => mockGet.mockReset());
+
+  it('does not fetch when disabled (no logo persisted)', () => {
+    const queryClient = makeQueryClient();
+    renderHook(() => useBrandingLogo({ enabled: false }), { wrapper: makeWrapper(queryClient) });
+
+    expect(mockGet).not.toHaveBeenCalled();
+  });
+
+  it('fetches the blob when enabled', async () => {
+    const queryClient = makeQueryClient();
+    mockGet.mockResolvedValue({ data: new Blob(['x'], { type: 'image/png' }) });
+
+    const { result } = renderHook(() => useBrandingLogo({ enabled: true }), {
+      wrapper: makeWrapper(queryClient),
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(mockGet).toHaveBeenCalledWith('/organizations/current/branding/logo', expect.anything());
+  });
+
+  it('uses a distinct query key per cache-bust value, forcing a real refetch after upload', async () => {
+    const queryClient = makeQueryClient();
+    mockGet.mockResolvedValue({ data: new Blob(['x'], { type: 'image/png' }) });
+
+    const { result, rerender } = renderHook(
+      ({ cacheBust }: { cacheBust: number }) => useBrandingLogo({ enabled: true, cacheBust }),
+      { wrapper: makeWrapper(queryClient), initialProps: { cacheBust: 0 } },
+    );
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    rerender({ cacheBust: 1 });
+    await waitFor(() => expect(mockGet).toHaveBeenCalledTimes(2));
+
+    expect(mockGet).toHaveBeenNthCalledWith(1, '/organizations/current/branding/logo', {
+      responseType: 'blob',
+      params: undefined,
+    });
+    expect(mockGet).toHaveBeenNthCalledWith(2, '/organizations/current/branding/logo', {
+      responseType: 'blob',
+      params: { v: 1 },
+    });
   });
 });
 
