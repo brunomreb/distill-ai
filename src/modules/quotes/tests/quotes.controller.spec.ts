@@ -6,6 +6,7 @@ import { QuoteApprovalActions } from '../actions/quote-approval.actions';
 import { QuoteModelAction } from '../quote.model-action';
 import { RequestModelAction } from '@modules/requests/requests.model-action';
 import type { AuthUser } from '@modules/auth/interfaces/auth-user.interface';
+import type { QuoteDeliveryService } from '../services/quote-delivery.service';
 
 vi.mock('@config/auth.config', () => ({ authConfig: { enabled: true } }));
 
@@ -49,15 +50,32 @@ function setup() {
     put: vi.fn(),
     get: vi.fn().mockResolvedValue(Buffer.from('pdf-bytes')),
   };
+  const delivery = {
+    send: vi.fn().mockResolvedValue({
+      quote: {
+        quote_number: 'Q-001',
+        status: 'sent',
+        email_recipient: 'cliente@example.pt',
+      },
+    }),
+  };
 
-  const controller = new QuotesController(
+  const Constructor = QuotesController as unknown as new (
+    approval: QuoteApprovalActions,
+    quotes: QuoteModelAction,
+    requests: RequestModelAction,
+    objectStore: unknown,
+    delivery: QuoteDeliveryService,
+  ) => QuotesController;
+  const controller = new Constructor(
     approvalActions as QuoteApprovalActions,
     quotes as QuoteModelAction,
     requests as RequestModelAction,
     objectStore as never,
+    delivery as never,
   );
 
-  return { controller, approvalActions, quotes, requests, objectStore };
+  return { controller, approvalActions, quotes, requests, objectStore, delivery };
 }
 
 describe('QuotesController.approveAndGenerate', () => {
@@ -160,5 +178,15 @@ describe('QuotesController.downloadPdf', () => {
     await expect(controller.downloadPdf('req-1', { user: mockUser }, res)).rejects.toMatchObject({
       status: HttpStatus.BAD_GATEWAY,
     });
+  });
+});
+
+describe('QuotesController.sendQuote', () => {
+  it('loads the tenant-owned request and delegates only after explicit POST', async () => {
+    const { controller, delivery } = setup();
+    const result = await controller.sendQuote('req-1', { user: mockUser });
+
+    expect(delivery.send).toHaveBeenCalledWith({ id: 'req-1', org_id: 'org-1' });
+    expect(result.data.quote).toMatchObject({ status: 'sent' });
   });
 });

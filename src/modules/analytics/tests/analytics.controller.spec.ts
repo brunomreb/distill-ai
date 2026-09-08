@@ -5,7 +5,6 @@ const { authState } = vi.hoisted(() => ({ authState: { enabled: true } }));
 vi.mock('@config/auth.config', () => ({ authConfig: authState }));
 
 import { CustomHttpException } from '@common/exceptions/custom-http.exception';
-import { DEMO_ORG_ID } from '@modules/ingestion/ingestion.constants';
 import { AnalyticsController } from '../analytics.controller';
 import type { AnalyticsService } from '../analytics.service';
 import type { AnalyticsSummary } from '../interfaces/analytics-summary.interface';
@@ -75,12 +74,12 @@ describe('AnalyticsController.summary', () => {
     expect(getSummary).not.toHaveBeenCalled();
   });
 
-  it('uses the demo org (ignoring req.user) when auth is disabled', async () => {
+  it('uses the demo org already validated by middleware when auth is disabled', async () => {
     authState.enabled = false;
     const { controller, getSummary } = setup();
 
     await controller.summary({}, { user: { orgId: 'org-1' } as never });
 
-    expect(getSummary.mock.calls[0][0]).toBe(DEMO_ORG_ID);
+    expect(getSummary.mock.calls[0][0]).toBe('org-1');
   });
 });

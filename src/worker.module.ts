@@ -10,6 +10,7 @@ import { JobsQueueModule } from './queue/jobs-queue.module';
 import { PipelineQueueModule } from './queue/pipeline-queue.module';
 import { PricingModule } from './modules/pricing/pricing.module';
 import { PolicyModule } from './modules/policy/policy.module';
+import { CatalogQueueModule } from './queue/catalog-queue.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { PolicyModule } from './modules/policy/policy.module';
     PolicyModule,
     JobsQueueModule,
     PipelineQueueModule,
+    CatalogQueueModule,
     PricingModule,
   ],
 })

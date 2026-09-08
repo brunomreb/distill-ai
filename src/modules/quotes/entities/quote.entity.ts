@@ -74,4 +74,16 @@ export class Quote extends BaseEntity {
 
   @Column({ type: 'text', nullable: true })
   email_draft_body: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  email_sent_at: Date | null;
+
+  @Column({ type: 'text', nullable: true })
+  email_recipient: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  email_provider_message_id: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  email_delivery_started_at: Date | null;
 }

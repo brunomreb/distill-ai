@@ -5,7 +5,7 @@ import { CustomHttpException } from '@common/exceptions/custom-http.exception';
 import { Roles } from '@modules/auth/decorators/roles.decorator';
 import { Role } from '@modules/auth/enums/role.enum';
 import type { AuthUser } from '@modules/auth/interfaces/auth-user.interface';
-import { resolveDemoOrgCandidate } from '@modules/auth/demo-org';
+import { DEFAULT_DEMO_ORG_ID } from '@modules/auth/demo-org';
 import * as SYS_MSG from '@constants/system-messages';
 import type { QuoteSummary } from './interfaces/quote-summary.interface';
 import { QuoteModelAction } from './quote.model-action';
@@ -21,7 +21,7 @@ export class QuoteListController {
   async list(
     @Req() req: { user?: AuthUser },
   ): Promise<{ statusCode: number; message: string; data: QuoteSummary[] }> {
-    let orgId = resolveDemoOrgCandidate(req.user?.orgId);
+    let orgId = req.user?.orgId ?? DEFAULT_DEMO_ORG_ID;
     if (authConfig.enabled) {
       if (!req.user) {
         throw new CustomHttpException(SYS_MSG.AUTH_UNAUTHORIZED, HttpStatus.UNAUTHORIZED);

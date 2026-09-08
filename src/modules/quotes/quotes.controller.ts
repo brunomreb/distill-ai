@@ -30,6 +30,7 @@ import { QuoteApprovalActions } from './actions/quote-approval.actions';
 import { QuoteModelAction } from './quote.model-action';
 import type { ApproveQuoteResponsePayload } from './interfaces/approve-quote.interface';
 import { ApproveAndGenerateQuoteDocs, DownloadQuotePdfDocs } from './docs/quotes-swagger.doc';
+import { QuoteDeliveryService } from './services/quote-delivery.service';
 
 @ApiTags('Quotes')
 @Controller('requests')
@@ -39,6 +40,7 @@ export class QuotesController {
     private readonly quotes: QuoteModelAction,
     private readonly requests: RequestModelAction,
     @Inject(OBJECT_STORE) private readonly objectStore: ObjectStore,
+    private readonly delivery: QuoteDeliveryService,
   ) {}
 
   /** Approves the request's priced quote, generates its PDF, and best-effort drafts a follow-up email. */
@@ -59,6 +61,19 @@ export class QuotesController {
     );
 
     return { statusCode: HttpStatus.OK, message: SYS_MSG.QUOTE_APPROVED_SUCCESS, data };
+  }
+
+  /** Sends the already-approved PDF only after this explicit human-triggered request. */
+  @Post(':requestId/quote/send')
+  @HttpCode(HttpStatus.OK)
+  @Roles(Role.ESTIMATOR, Role.ADMIN)
+  async sendQuote(
+    @Param('requestId', ParseUUIDPipe) requestId: string,
+    @Req() req: { user?: AuthUser },
+  ) {
+    const request = await this.loadRequestInOrg(requestId, req.user);
+    const data = await this.delivery.send(request);
+    return { statusCode: HttpStatus.OK, message: SYS_MSG.QUOTE_SENT_SUCCESS, data };
   }
 
   /** Streams the generated quote PDF; 404s when the quote has not been generated yet. */

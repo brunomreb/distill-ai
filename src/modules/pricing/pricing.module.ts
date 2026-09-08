@@ -7,11 +7,18 @@ import { QuotePricingService } from './quote-pricing.service';
 import { QuoteRecomputeService } from './quote-recompute.service';
 import { PricingRuleModelAction } from './pricing-rule.model-action';
 import { PricingRule } from './entities/pricing-rule.entity';
+import { PricingRulesAdminService } from './pricing-rules-admin.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([PricingRule]), QuotesModule],
   controllers: [PricingController],
-  providers: [PricingService, QuotePricingService, QuoteRecomputeService, PricingRuleModelAction],
+  providers: [
+    PricingService,
+    PricingRulesAdminService,
+    QuotePricingService,
+    QuoteRecomputeService,
+    PricingRuleModelAction,
+  ],
   exports: [PricingService, QuotePricingService, QuoteRecomputeService, PricingRuleModelAction],
 })
 export class PricingModule {}

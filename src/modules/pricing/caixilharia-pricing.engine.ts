@@ -121,7 +121,9 @@ export function priceCaixilhariaQuote(
   const rules = allRules
     .filter((rule) => rule.active && rule.vertical === 'caixilharia')
     .sort((a, b) => a.sort_order - b.sort_order);
-  const skuByCode = new Map(catalog.map((sku) => [sku.sku_code, sku]));
+  const skuByCode = new Map(
+    catalog.filter((sku) => sku.active !== false).map((sku) => [sku.sku_code, sku]),
+  );
   const lines: CaixilhariaQuoteLine[] = [];
   const missingRules: string[] = [];
   let position = 1;

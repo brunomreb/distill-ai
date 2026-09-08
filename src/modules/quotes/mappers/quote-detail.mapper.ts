@@ -20,6 +20,8 @@ export function toQuoteDetail(quote: Quote, lines: QuoteLineItem[]): QuoteDetail
     pdf_generated_at: quote.pdf_generated_at,
     email_draft_subject: quote.email_draft_subject,
     email_draft_body: quote.email_draft_body,
+    email_sent_at: quote.email_sent_at,
+    email_recipient: quote.email_recipient,
     lines: lines.map((line) => ({
       position: line.position,
       sku_id: line.sku_id,

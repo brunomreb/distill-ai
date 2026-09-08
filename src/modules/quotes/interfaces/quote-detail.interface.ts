@@ -29,5 +29,7 @@ export interface QuoteDetail {
   pdf_generated_at: Date | null;
   email_draft_subject: string | null;
   email_draft_body: string | null;
+  email_sent_at: Date | null;
+  email_recipient: string | null;
   lines: QuoteLineDetail[];
 }

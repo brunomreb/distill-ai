@@ -130,7 +130,7 @@ export class PriceNode implements PipelineNode {
   ): Promise<NodeResult> {
     const [rules, catalog, branding] = await Promise.all([
       this.pricingRules.getActiveForOrg(orgId, 'avac'),
-      this.dataSource.manager.find(Sku, { where: { org_id: orgId } }),
+      this.dataSource.manager.find(Sku, { where: { org_id: orgId, active: true } }),
       this.dataSource.manager.findOne(OrgBranding, { where: { org_id: orgId } }),
     ]);
     const priced = priceAvacQuote(extraction, rules, catalog, {
@@ -167,7 +167,7 @@ export class PriceNode implements PipelineNode {
   ): Promise<NodeResult> {
     const [rules, catalog, branding] = await Promise.all([
       this.pricingRules.getActiveForOrg(orgId, 'caixilharia'),
-      this.dataSource.manager.find(Sku, { where: { org_id: orgId } }),
+      this.dataSource.manager.find(Sku, { where: { org_id: orgId, active: true } }),
       this.dataSource.manager.findOne(OrgBranding, { where: { org_id: orgId } }),
     ]);
     const priced = priceCaixilhariaQuote(extraction, rules, catalog, {

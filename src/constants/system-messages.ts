@@ -243,7 +243,20 @@ export const CLARIFICATION_DRAFT_EMPTY = 'Cannot send a clarification with empty
 
 // Catalog search (manual re-map fallback)
 export const SKUS_RETRIEVED = 'SKUs retrieved successfully';
+export const SKU_CREATED = 'SKU created successfully';
+export const SKU_UPDATED = 'SKU updated successfully';
+export const SKU_DEACTIVATED = 'SKU deactivated successfully';
+export const SKU_NOT_FOUND = 'SKU not found';
+export const CATALOG_IMPORTED = 'Catalog imported successfully';
+export const PRICING_RULE_CREATED = 'Pricing rule created successfully';
+export const PRICING_RULE_UPDATED = 'Pricing rule updated successfully';
+export const PRICING_RULE_DEACTIVATED = 'Pricing rule deactivated successfully';
+export const PRICING_RULE_NOT_FOUND = 'Pricing rule not found';
 export const ORGANIZATIONS_RETRIEVED = 'Organizations retrieved successfully';
+export const ORGANIZATION_CREATED = 'Organization created successfully';
+export const BRANDING_RETRIEVED = 'Branding retrieved successfully';
+export const BRANDING_UPDATED = 'Branding updated successfully';
+export const QUOTE_SENT_SUCCESS = 'Quote sent successfully';
 
 // Decline
 export const REQUEST_DECLINED = 'Request declined successfully';

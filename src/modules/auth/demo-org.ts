@@ -12,9 +12,15 @@ export function resolveDemoOrgCandidate(candidate?: string): string {
 
 /** Demo-only tenant switch. Unknown IDs fail closed to the default seeded AVAC tenant. */
 export function resolveDemoOrgId(headers?: Record<string, string | string[] | undefined>): string {
-  const raw = headers?.[DEMO_ORG_HEADER];
-  const candidate = Array.isArray(raw) ? raw[0] : raw;
+  const candidate = requestedDemoOrgId(headers);
   return resolveDemoOrgCandidate(candidate);
+}
+
+export function requestedDemoOrgId(
+  headers?: Record<string, string | string[] | undefined>,
+): string | undefined {
+  const raw = headers?.[DEMO_ORG_HEADER];
+  return Array.isArray(raw) ? raw[0] : raw;
 }
 
 export function demoAuthUser(orgId: string): AuthUser {

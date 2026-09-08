@@ -48,7 +48,7 @@ import type { AuthUser } from '../../auth/interfaces/auth-user.interface';
 import type { ResumeResponsePayload } from '../interfaces/resume.interface';
 import type { DeclineResponsePayload } from '../interfaces/decline.interface';
 import type { RemapResponsePayload } from '../interfaces/remap.interface';
-import { resolveDemoOrgCandidate } from '@modules/auth/demo-org';
+import { DEFAULT_DEMO_ORG_ID } from '@modules/auth/demo-org';
 
 @Controller('requests')
 export class RequestsController {
@@ -75,7 +75,7 @@ export class RequestsController {
     const { page, limit } = parsePagination(rawPage, rawLimit);
 
     // Fail closed: when auth is on, a caller with no org gets an empty list, never an unscoped one.
-    const orgId = authConfig.enabled ? req.user?.orgId : resolveDemoOrgCandidate(req.user?.orgId);
+    const orgId = authConfig.enabled ? req.user?.orgId : (req.user?.orgId ?? DEFAULT_DEMO_ORG_ID);
     if (!orgId && authConfig.enabled) {
       return {
         statusCode: HttpStatus.OK,

@@ -61,6 +61,7 @@ const envSchema = z
     DLQ_ALERT_THRESHOLD: z.coerce.number().int().positive().default(10),
     ALERT_EMAIL: z.string().email().default('admin@example.com'),
     EMAIL_FROM: z.string().default('App <noreply@example.com>'),
+    RESEND_API_KEY: z.string().optional(),
 
     // ── LLM & Circuit Breaker ──────────────────────────────────────────────────
     LLM_PROVIDER: z.enum(['anthropic', 'openai-compatible']).default('anthropic'),

@@ -22,6 +22,7 @@ export class SkuSearchActions {
               ) AS sim_score
        FROM skus
        WHERE org_id = $2
+         AND active = true
          AND $1 <% (COALESCE(sku_code, '') || ' ' || COALESCE(name, '') || ' ' || COALESCE(description, ''))
        ORDER BY sim_score DESC
        LIMIT $3`,
@@ -37,6 +38,7 @@ export class SkuSearchActions {
               1 - (embedding <=> $1::vector) AS sim_score
        FROM skus
        WHERE org_id = $2
+         AND active = true
          AND embedding IS NOT NULL
        ORDER BY embedding <=> $1::vector
        LIMIT $3`,

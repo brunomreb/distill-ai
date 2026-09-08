@@ -16,6 +16,8 @@ import { QuoteApprovalActions } from './actions/quote-approval.actions';
 import { QuotesController } from './quotes.controller';
 import { QuoteListController } from './quote-list.controller';
 import { OrgBranding } from '@modules/organizations/entities/org-branding.entity';
+import { QuoteDeliveryService } from './services/quote-delivery.service';
+import { QUOTE_EMAIL_SENDER, ResendQuoteEmailSender } from './services/quote-email-sender';
 
 /** Persistence for priced quotes. Exports QuoteModelAction for the price node (US-E4-1). */
 @Module({
@@ -34,6 +36,9 @@ import { OrgBranding } from '@modules/organizations/entities/org-branding.entity
     RenderQuotePdfToolFactory,
     DraftQuoteEmailToolFactory,
     QuoteApprovalActions,
+    QuoteDeliveryService,
+    ResendQuoteEmailSender,
+    { provide: QUOTE_EMAIL_SENDER, useExisting: ResendQuoteEmailSender },
   ],
   exports: [QuoteModelAction, QuoteApprovalActions],
 })

@@ -75,6 +75,22 @@ describe('RlsContextMiddleware', () => {
     expect(req.user).toMatchObject({ orgId: '00000000-0000-0000-0000-000000000002' });
   });
 
+  it('selects a newly onboarded tenant only when it is enabled in the database', async () => {
+    const { middleware, qr } = build();
+    const newOrgId = '00000000-0000-0000-0000-000000000003';
+    qr.query.mockImplementation(async (sql: string) =>
+      sql.includes('FROM "organizations"') ? [{ id: newOrgId }] : undefined,
+    );
+    const req: Record<string, unknown> = { headers: { 'x-demo-org-id': newOrgId } };
+
+    await middleware.use(req, makeResponse() as unknown as Response, vi.fn());
+
+    expect(qr.query).toHaveBeenCalledWith(expect.stringContaining('FROM "organizations"'), [
+      newOrgId,
+    ]);
+    expect(req.user).toMatchObject({ orgId: newOrgId });
+  });
+
   it('commits and runs after-commit tasks on a 2xx response', async () => {
     const { middleware, qr } = build();
     const req: Record<string, unknown> = {};

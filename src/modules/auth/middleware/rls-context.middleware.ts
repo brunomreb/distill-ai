@@ -5,7 +5,7 @@ import { authConfig } from '@config/auth.config';
 import type { Response } from 'express';
 import type { AfterCommitTask, WithAfterCommit } from '@common/http/after-commit';
 import type { AuthUser } from '../interfaces/auth-user.interface';
-import { demoAuthUser, resolveDemoOrgId } from '../demo-org';
+import { demoAuthUser, requestedDemoOrgId, resolveDemoOrgId } from '../demo-org';
 
 interface RlsRequest extends WithAfterCommit {
   headers?: Record<string, string | string[] | undefined>;
@@ -48,6 +48,18 @@ export class RlsContextMiddleware implements NestMiddleware {
           request.user = this.authService.buildAuthUser(decoded);
         }
       } else {
+        const requested = requestedDemoOrgId(request.headers);
+        if (
+          requested &&
+          requested !== orgId &&
+          /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(requested)
+        ) {
+          const rows = (await queryRunner.query(
+            `SELECT "id" FROM "organizations" WHERE "id" = $1 AND "demo_enabled" = true LIMIT 1`,
+            [requested],
+          )) as Array<{ id: string }> | undefined;
+          if (rows?.length) orgId = requested;
+        }
         request.user = demoAuthUser(orgId);
       }
 

@@ -140,3 +140,66 @@ Não foram feitas alterações de produto nessa fase.
 - Divergência: probe do client usa explicitamente `127.0.0.1`; o compose desativa o healthcheck HTTP apenas no serviço worker, cuja falha de processo continua coberta por `restart: unless-stopped`.
 - Impacto no merge: baixo e restrito a runtime local/deploy.
 - Teste: API, client, PostgreSQL e Redis reportam `healthy`; worker fica `running` sem um falso estado `unhealthy`.
+
+## 2026-09-08 — Fase 3: editar sem código
+
+### Administração de catálogo e regras determinísticas
+
+- Motivo: permitir a não-programadores alterar produtos, preços e regras sem editar código/configuração nem fazer redeploy.
+- Ficheiros principais: `src/modules/catalog/catalog.controller.ts`, `catalog.service.ts`, DTOs/entidade; `src/modules/pricing/pricing.controller.ts`, `pricing-rules-admin.service.ts`, `pricing-rule-config.validator.ts`; `client/src/components/admin/**` e APIs do client.
+- Divergência: CRUD org-scoped com soft-deactivate; preços persistidos em minor units; regras AVAC/caixilharia validadas contra os formatos exatos dos motores; `qty_break` incluído explicitamente.
+- Segurança: todos os writes incluem `org_id` e usam o `EntityManager` do pedido que contém o contexto RLS. SKUs inativos deixam de participar em matching/pricing, mas mantêm referências históricas.
+- Impacto no merge: moderado e localizado nos módulos de catálogo/pricing; motores puros e fallback upstream mantidos.
+- Testes: controllers/services, tenant scope, formatos inválidos, soft-deactivate, pesquisa/matching só de SKUs ativos e CRUD real em Docker.
+
+### Importação CSV/XLSX e fila de embeddings
+
+- Motivo: importar catálogos de clientes e recalcular matching sem bloquear pedidos HTTP em chamadas externas.
+- Ficheiros principais: `src/modules/catalog/catalog-import.service.ts`, `src/queue/catalog-queue.module.ts`, `catalog-embedding.processor.ts`, constantes/módulos de fila, `docs/demo/phase-3-catalog-sample.csv`, `package.json` e lockfile.
+- Divergência: dependência `exceljs`; aliases de cabeçalhos PT/EN; conversão decimal exata para cêntimos; resultado parcial apenas para erros de validação; advisory lock por organização; job Bull pós-commit para re-embedding.
+- Recuperação: o worker mantém uma varredura repetível em Redis para linhas `pending`; cada tenant é lido numa transação com `app.org_id`, os jobs são deduplicados por organização/SKU e o processamento obtém um lock pessimista apenas se a linha continuar `pending`, impedindo vetores obsoletos após uma edição concorrente.
+- Compatibilidade: nova queue aditiva e worker-only; outras filas e o pipeline upstream não mudam de semântica.
+- Impacto no merge: baixo/moderado, sobretudo ficheiros novos e wiring aditivo.
+- Testes: CSV, XLSX, erros, decimal exato, lock, enqueue pós-commit, processor e E2E Docker `pending → unavailable` em demo.
+
+### Branding, IVA, logótipo e onboarding
+
+- Motivo: editar identidade/fiscalidade por organização e criar tenants demo sem código.
+- Ficheiros principais: `src/modules/organizations/**`, object store existente, middleware demo/RLS, `client/src/api/branding.ts`, `BrandingPanel.tsx`, Settings/onboarding.
+- Divergência: `organizations.demo_enabled`; criação de organização apenas em demo enquanto não existir admin de plataforma; defaults de branding criados na BD; upload PNG/JPEG validado por MIME e magic bytes, máximo 2 MB, para chave org-scoped no object store; endpoint autenticado tenant-scoped transmite o logo privado à UI sem expor a chave como URL pública.
+- Segurança: UUIDs demo dinâmicos só são aceites se persistidos com `demo_enabled=true`; auth real ignora o header demo; URLs externas de logo são recusadas porque o renderer lê apenas chaves internas.
+- Impacto no merge: moderado, concentrado no módulo de organizações e UI admin.
+- Testes: tenants seed/dinâmicos, auth, branding/IVA, upload de logo e uso do contexto RLS.
+
+### Entrega explícita do orçamento por email
+
+- Motivo: completar aprovação → PDF → email sem permitir envio automático antes da revisão humana.
+- Ficheiros principais: `src/modules/quotes/services/quote-delivery.service.ts`, `quote-email-sender.ts`, controller/model/entity/mappers, `.env.example` e migration de Fase 3.
+- Divergência: endpoint `POST /requests/:requestId/quote/send`; adapter Resend via `fetch`; API key apenas em ambiente; PDF do object store como attachment; metadados de entrega persistidos.
+- Idempotência: key `quote/send/<quote_id>`; claim persistente antes do provider; retries automáticos apenas dentro de 23 horas; estado antigo incerto exige reconciliação manual; retry após `SENT` repara também o pedido.
+- Segurança: apenas quotes `READY` com PDF e destinatário podem ser enviadas; `DEMO_MODE` devolve um message id simulado e não envia email real.
+- Impacto no merge: baixo/moderado e isolado em `quotes`; nenhum cálculo foi adicionado ao LLM.
+- Testes: estados inválidos, destinatário, attachment, segredo, provider/idempotency headers, retry/concurrency e modo demo.
+
+### UI Fase 3 — colaboração Codex/Claude Code
+
+- Responsabilidade: Claude Code implementou exclusivamente `client/` na branch `claude/frontend`; Codex implementou o backend, reviu contratos/RLS e integrou os commits.
+- Ficheiros principais: `client/src/pages/Catalog.tsx`, `Settings.tsx`, componentes `admin/**`, APIs `catalog`, `pricingRules`, `branding`, onboarding e envio em Quote Output.
+- Divergência: tabs Produtos/Regras/Branding, formulários/modais, import CSV/XLSX, seletor de ficheiro de logo, onboarding guiado e botão de envio explícito; tokens Stratos teal e PT-PT mantidos.
+- Impacto no merge: elevado apenas na superfície UI, sem substituir router, React Query ou cliente HTTP upstream.
+- Testes: 61 ficheiros/525 testes, TypeScript/Vite build e ESLint; percurso `/quotes` → detalhe validado em browser com APIs 200 e zero erros de consola.
+
+### Proxy client resiliente a recriações da API
+
+- Motivo: o nginx resolvia `api` apenas no arranque e ficava preso ao IP anterior depois de o container backend ser recriado, deixando a UI em “A validar organização…” com 502 apesar da API saudável.
+- Ficheiro: `nginx.conf`.
+- Divergência: resolução runtime pelo DNS embebido do Docker (`127.0.0.11`, TTL 10 s) através de upstream variável.
+- Impacto no merge: mínimo, apenas no proxy local/runtime do client.
+- Teste: recriar a API sem reiniciar o client e confirmar `GET /api/v1/organizations` = 200 através da porta 8080.
+
+### Migração e compatibilidade
+
+- Ficheiro: `src/database/migrations/1782610000000-AddPhase3Administration.ts`.
+- Colunas aditivas: `organizations.demo_enabled`; `skus.active`, estado/erro de embedding; metadados/claim de entrega em `quotes`; índice org/active e constraint de estado.
+- Rollback: remove apenas campos/índice/constraint da Fase 3; não elimina organizações nem dados preexistentes.
+- Validação: rollback e reaplicação numa base PostgreSQL real, seguidos de build Docker e arranque saudável de API/client/worker.

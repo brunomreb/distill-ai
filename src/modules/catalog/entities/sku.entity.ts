@@ -37,6 +37,15 @@ export class Sku extends BaseEntity {
   @Column({ type: 'smallint', nullable: true })
   lead_time_days: number | null;
 
+  @Column({ type: 'boolean', default: true })
+  active: boolean;
+
+  @Column({ type: 'text', default: 'pending' })
+  embedding_status: 'ready' | 'pending' | 'unavailable';
+
+  @Column({ type: 'text', nullable: true })
+  embedding_error: string | null;
+
   // DB column is vector(1024), sized for Qwen text-embedding-v4. Declared as text so TypeORM
   // can read it without a custom type.
   // insert: false / update: false makes this ORM-read-only: save() will never attempt to write

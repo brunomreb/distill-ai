@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, In, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, IsNull, Repository } from 'typeorm';
 import { AbstractModelAction } from '@common/model-action/abstract.model-action';
 import { Quote } from './entities/quote.entity';
 import { QuoteLineItem } from './entities/quote-line-item.entity';
@@ -163,6 +163,40 @@ export class QuoteModelAction extends AbstractModelAction<Quote> {
     const result = await this.repository.update(
       { id: quoteId, status: QuoteStatus.APPROVED },
       { status: QuoteStatus.READY, pdf_storage_url: pdfStorageUrl, pdf_generated_at: new Date() },
+    );
+    return (result.affected ?? 0) > 0;
+  }
+
+  /** Records an idempotent delivery transition only for a READY quote owned by the caller tenant. */
+  async tryStartDelivery(quoteId: string, orgId: string, startedAt = new Date()): Promise<boolean> {
+    const result = await this.repository.update(
+      {
+        id: quoteId,
+        org_id: orgId,
+        status: QuoteStatus.READY,
+        email_delivery_started_at: IsNull(),
+      },
+      { email_delivery_started_at: startedAt },
+    );
+    return (result.affected ?? 0) > 0;
+  }
+
+  /** Records an idempotent delivery transition only for a READY quote owned by the caller tenant. */
+  async markSent(
+    quoteId: string,
+    orgId: string,
+    recipient: string,
+    providerMessageId: string,
+    sentAt = new Date(),
+  ): Promise<boolean> {
+    const result = await this.repository.update(
+      { id: quoteId, org_id: orgId, status: QuoteStatus.READY },
+      {
+        status: QuoteStatus.SENT,
+        email_sent_at: sentAt,
+        email_recipient: recipient,
+        email_provider_message_id: providerMessageId,
+      },
     );
     return (result.affected ?? 0) > 0;
   }

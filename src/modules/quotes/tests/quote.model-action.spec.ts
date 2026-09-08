@@ -102,6 +102,40 @@ describe('QuoteModelAction.markReady', () => {
   });
 });
 
+describe('QuoteModelAction.markSent', () => {
+  it('claims a READY delivery exactly once before calling the email provider', async () => {
+    const { action, repository } = setup();
+
+    expect(
+      await action.tryStartDelivery('quote-1', 'org-1', new Date('2026-09-08T10:00:00Z')),
+    ).toBe(true);
+    expect(repository.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'quote-1',
+        org_id: 'org-1',
+        status: QuoteStatus.READY,
+        email_delivery_started_at: expect.anything(),
+      }),
+      { email_delivery_started_at: new Date('2026-09-08T10:00:00Z') },
+    );
+  });
+
+  it('atomically records delivery only from READY and within the owning tenant', async () => {
+    const { action, repository } = setup();
+
+    expect(await action.markSent('quote-1', 'org-1', 'cliente@example.pt', 'email-1')).toBe(true);
+    expect(repository.update).toHaveBeenCalledWith(
+      { id: 'quote-1', org_id: 'org-1', status: QuoteStatus.READY },
+      expect.objectContaining({
+        status: QuoteStatus.SENT,
+        email_recipient: 'cliente@example.pt',
+        email_provider_message_id: 'email-1',
+        email_sent_at: expect.any(Date),
+      }),
+    );
+  });
+});
+
 describe('QuoteModelAction.revertToDraft', () => {
   it('reverts an approved quote back to draft, clearing approved_by', async () => {
     const { action, repository } = setup();

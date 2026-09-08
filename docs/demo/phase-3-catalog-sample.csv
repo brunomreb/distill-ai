@@ -1,0 +1,2 @@
+codigo;nome;descricao;preco_eur;custo_eur;moeda;prazo_dias;ativo
+QA-F3-IMPORT;Produto de demonstração;Linha para validar a importação CSV;149,90;100,00;EUR;7;sim
