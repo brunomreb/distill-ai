@@ -27,7 +27,7 @@ function seedDetail(): RequestDetail {
     quote: {
       quote_number: 'Q1',
       status: 'draft',
-      currency: 'GBP',
+      currency: 'EUR',
       subtotal_minor: 1000,
       discount_minor: 100,
       total_minor: 900,

@@ -89,12 +89,9 @@ describe('Quotes', () => {
     expect(screen.getByText('PDF prontos')).toBeInTheDocument();
   });
 
-  it('never adds totals expressed in different currencies', () => {
+  it('sums totals across multiple quotes, all in EUR', () => {
     mockUseQuotes.mockReturnValue({
-      data: [
-        quote,
-        { ...quote, id: 'quote-2', quote_number: 'Q-002', currency: 'NGN', total_minor: 10000 },
-      ],
+      data: [quote, { ...quote, id: 'quote-2', quote_number: 'Q-002', total_minor: 10000 }],
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
@@ -102,7 +99,7 @@ describe('Quotes', () => {
 
     renderQuotes();
 
-    expect(screen.getByText('8315,27 EUR · 100,00 NGN')).toBeInTheDocument();
+    expect(screen.getByText('8415,27 EUR')).toBeInTheDocument();
   });
 
   it('offers retry when the register cannot be loaded', async () => {

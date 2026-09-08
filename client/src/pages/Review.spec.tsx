@@ -90,7 +90,7 @@ const detail: RequestDetail = {
     subtotal_minor: 300000,
     discount_minor: 15000,
     total_minor: 285000,
-    currency: 'NGN',
+    currency: 'EUR',
     lead_time_days: 5,
     pdf_storage_url: null,
     pdf_generated_at: null,

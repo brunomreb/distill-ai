@@ -21,7 +21,7 @@ const CANDIDATE = {
   sku_code: 'SKU-061',
   name: 'M6 Hex Bolt',
   base_price_minor: 1000,
-  currency: 'NGN',
+  currency: 'EUR',
   confidence: 0.62,
 };
 
@@ -72,7 +72,7 @@ describe('RemapDrawer', () => {
           sku_code: 'SKU-099',
           name: 'Washer',
           base_price_minor: 300,
-          currency: 'NGN',
+          currency: 'EUR',
         },
       ],
       isFetching: false,

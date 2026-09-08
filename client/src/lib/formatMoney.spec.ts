@@ -3,8 +3,8 @@ import { formatMoney } from './formatMoney';
 
 // Output is deterministic because formatMoney pins the locale to pt-PT.
 describe('formatMoney', () => {
-  it('renders a 2-decimal currency (NGN) from minor units', () => {
-    expect(formatMoney(285000, 'NGN')).toBe('2850,00 NGN');
+  it('renders a 2-decimal EUR amount from minor units', () => {
+    expect(formatMoney(285000, 'EUR')).toBe('2850,00 EUR');
   });
 
   it('uses the currency exponent: JPY has 0 decimals, so minor units are whole yen', () => {

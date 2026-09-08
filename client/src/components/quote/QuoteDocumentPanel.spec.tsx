@@ -8,7 +8,7 @@ const quoteFixture: QuoteDetail = {
   subtotal_minor: 378000,
   discount_minor: 0,
   total_minor: 412000,
-  currency: 'GBP',
+  currency: 'EUR',
   lead_time_days: 7,
   pdf_storage_url: null,
   pdf_generated_at: null,

@@ -49,7 +49,7 @@ const draftQuote: QuoteDetail = {
   subtotal_minor: 378000,
   discount_minor: 0,
   total_minor: 412000,
-  currency: 'GBP',
+  currency: 'EUR',
   lead_time_days: 7,
   pdf_storage_url: null,
   pdf_generated_at: null,
@@ -459,7 +459,7 @@ describe('QuoteOutput', () => {
     await user.click(screen.getByRole('button', { name: /^copiar$/i }));
 
     expect(mockCopy).toHaveBeenCalledWith(
-      'Orçamento Q-2041 — Stratos\n\nOlá,\n\nSegue em anexo o orçamento Q-2041, no valor total de 4120,00 GBP. O prazo estimado é de 7 dias úteis.\n\nCom os melhores cumprimentos,\nStratos',
+      'Orçamento Q-2041 — Stratos\n\nOlá,\n\nSegue em anexo o orçamento Q-2041, no valor total de 4120,00 EUR. O prazo estimado é de 7 dias úteis.\n\nCom os melhores cumprimentos,\nStratos',
       expect.anything(),
     );
   });

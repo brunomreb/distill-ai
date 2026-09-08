@@ -43,7 +43,6 @@ export function SkuFormModal({
   const [costEuros, setCostEuros] = useState(
     initial?.cost_minor != null ? String(minorToEuros(initial.cost_minor)) : '',
   );
-  const [currency, setCurrency] = useState(initial?.currency ?? 'EUR');
   const [leadTimeDays, setLeadTimeDays] = useState(
     initial?.lead_time_days != null ? String(initial.lead_time_days) : '',
   );
@@ -94,7 +93,7 @@ export function SkuFormModal({
       attributes: attributesResult.value,
       base_price_minor: eurosToMinor(priceValue),
       cost_minor: costMinor,
-      currency: currency.trim() || 'EUR',
+      currency: 'EUR',
       lead_time_days: leadTime,
       active,
     });
@@ -166,11 +165,7 @@ export function SkuFormModal({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Moeda">
-              <input
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className={inputClass}
-              />
+              <p className={`${inputClass} flex items-center text-muted`}>EUR (€)</p>
             </Field>
             <Field label="Prazo de entrega (dias)">
               <input
